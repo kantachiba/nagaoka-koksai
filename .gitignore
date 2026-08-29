@@ -5,3 +5,8 @@ dist/
 firebase-debug.log
 *.local
 .DS_Store
+
+# ツールの作業ファイル
+.agents/
+.claude/settings.local.json
+skills-lock.json
