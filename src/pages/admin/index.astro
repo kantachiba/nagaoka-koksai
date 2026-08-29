@@ -1,0 +1,42 @@
+---
+import '../../styles/global.css'
+import AdminApp from '../../admin/AdminApp'
+import { SITE_NAME } from '../../config/site'
+import { resolveText } from '../../i18n/text'
+import { stripRuby } from '../../lib/ruby'
+
+/**
+ * 管理画面。公開ページとは別扱いにする。
+ *  - 検索エンジンには登録させない（sitemap からも除外）
+ *  - 言語切替の対象外（運営向けなので日本語のみ）
+ *  - React はこのページでのみ読み込む（client:only）
+ */
+const siteName = stripRuby(resolveText(SITE_NAME, 'ja').text)
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>管理画面｜{siteName}</title>
+  </head>
+  <body class="bg-snow-50">
+    <div class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <header class="mb-8">
+        <p class="text-xs font-bold tracking-widest text-hanabi-700 uppercase">Admin</p>
+        <h1 class="mt-1 text-2xl font-bold">{siteName} 管理画面</h1>
+        <p class="mt-2 text-sm text-snow-500">
+          ここで登録した内容は、公開サイトに最大30分ほどで反映されます。
+        </p>
+      </header>
+
+      <AdminApp client:only="react" />
+
+      <footer class="mt-12 border-t border-snow-200 pt-6 text-xs text-snow-400">
+        <a href="/" class="hover:text-brand-700 hover:underline">← 公開サイトへ戻る</a>
+      </footer>
+    </div>
+  </body>
+</html>

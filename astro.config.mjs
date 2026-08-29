@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
+import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -23,9 +24,15 @@ export default defineConfig({
     routing: { prefixDefaultLocale: false },
   },
 
-  // React アイランドが必要になったら @astrojs/react を入れ直す。
-  // 現状は素のJSで足りており、未使用のランタイムを配信しないため外している。
-  integrations: [sitemap()],
+  integrations: [
+    // React は管理画面（/admin）のアイランドでのみ使う。
+    // 公開ページは .astro のみで組んでおり、JS はほぼ配信されない。
+    react(),
+    sitemap({
+      // 管理画面は検索対象にしない
+      filter: (page) => !page.includes('/admin'),
+    }),
+  ],
 
   vite: {
     plugins: [tailwindcss()],
