@@ -1,0 +1,55 @@
+---
+import { localizePath, type Locale } from '../../i18n'
+import { useTranslations } from '../../i18n'
+import Container from '../ui/Container.astro'
+import Ruby from '../Ruby.astro'
+
+/** 一覧ページ共通の見出しとパンくず */
+interface Props {
+  locale: Locale
+  title: string
+  lead?: string
+  /** パンくず。最後の要素が現在位置 */
+  crumbs: Array<{ label: string; path?: string }>
+}
+
+const { locale, title, lead, crumbs } = Astro.props
+const t = useTranslations(locale)
+---
+
+<div class="border-b border-snow-200 bg-linear-to-b from-brand-50 to-snow-50">
+  <Container>
+    <nav aria-label={t('common.breadcrumb')} class="py-4">
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-snow-500">
+        {
+          crumbs.map((crumb, index) => {
+            const isLast = index === crumbs.length - 1
+            return (
+              <li class="flex items-center gap-2">
+                {crumb.path && !isLast ? (
+                  <a href={localizePath(crumb.path, locale)} class="rounded hover:text-brand-700 hover:underline">
+                    <Ruby text={crumb.label} />
+                  </a>
+                ) : (
+                  <span class={isLast ? 'font-medium text-snow-700' : undefined} aria-current={isLast ? 'page' : undefined}>
+                    <Ruby text={crumb.label} />
+                  </span>
+                )}
+                {!isLast && <span aria-hidden="true" class="text-snow-300">／</span>}
+              </li>
+            )
+          })
+        }
+      </ol>
+    </nav>
+
+    <div class="max-w-3xl pt-2 pb-10">
+      <h1 class="text-balance-ja text-3xl sm:text-4xl">
+        <span class="mr-3 inline-block h-7 w-1.5 translate-y-0.5 rounded-full bg-hanabi-500 align-middle sm:h-9"></span>
+        <Ruby text={title} />
+      </h1>
+      {lead && <p class="text-balance-ja mt-4 leading-relaxed text-snow-600"><Ruby text={lead} /></p>}
+      <slot />
+    </div>
+  </Container>
+</div>

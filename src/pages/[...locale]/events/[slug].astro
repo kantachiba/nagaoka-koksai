@@ -1,0 +1,265 @@
+---
+import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i18n'
+import { resolveText } from '../../../i18n/text'
+import { stripRuby } from '../../../lib/ruby'
+import { FEATURES } from '../../../config/site'
+import { findOrganization, getContent, listableEvents } from '../../../lib/content'
+import { dateOf, getEventStatus, timeOf } from '../../../lib/event-helpers'
+import { supportLanguageLabel } from '../../../lib/support-languages'
+import { formatDateRange } from '../../../lib/date'
+import { withUnit } from '../../../lib/units'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import Container from '../../../components/ui/Container.astro'
+import Badge from '../../../components/ui/Badge.astro'
+import Icon from '../../../components/ui/Icon.astro'
+import InfoList from '../../../components/ui/InfoList.astro'
+import InfoRow from '../../../components/ui/InfoRow.astro'
+import LocalizedTextView from '../../../components/LocalizedText.astro'
+import Ruby from '../../../components/Ruby.astro'
+
+/**
+ * イベント詳細。
+ * visibility が 'hidden' のものはページ自体を作らない（告知しないため）。
+ */
+export async function getStaticPaths() {
+  const bundle = await getContent()
+  const events = listableEvents(bundle)
+
+  return LOCALES.flatMap((locale) =>
+    events.map((event) => ({
+      params: {
+        locale: locale === 'ja' ? undefined : locale,
+        slug: event.slug,
+      },
+      props: { locale, eventId: event.id },
+    })),
+  )
+}
+
+const { locale, eventId } = Astro.props as { locale: Locale; eventId: string }
+const t = useTranslations(locale)
+
+const bundle = await getContent()
+const event = bundle.events.find((candidate) => candidate.id === eventId)!
+const organization = findOrganization(bundle, event.organizationId)
+const status = getEventStatus(event)
+const relatedReport = bundle.reports.find((report) => report.relatedEventId === event.id)
+
+const eventTags = event.tagIds
+  .map((id) => bundle.tags.find((tag) => tag.id === id))
+  .filter((tag) => !!tag)
+
+const startDate = dateOf(event.startAt)
+const endDate = dateOf(event.endAt)
+const title = resolveText(event.title, locale).text
+const summary = resolveText(event.summary, locale).text
+
+const audienceKey = (
+  { anyone: 'event.audience.anyone', family: 'event.audience.family', invited: 'event.audience.invited' } as const
+)[event.audience]
+
+/** 申込ボタンを出せる状態か（招待制・告知のみでは出さない） */
+const canApply = event.visibility === 'public'
+---
+
+<BaseLayout
+  locale={locale}
+  path={`/events/${event.slug}`}
+  title={title}
+  description={stripRuby(summary)}
+>
+  <Container>
+    <nav aria-label={t('common.breadcrumb')} class="py-4">
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-snow-500">
+        <li><a href={localizePath('/', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.home')} /></a></li>
+        <li aria-hidden="true" class="text-snow-300">／</li>
+        <li><a href={localizePath('/events', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.events')} /></a></li>
+        <li aria-hidden="true" class="text-snow-300">／</li>
+        <li class="font-medium text-snow-700" aria-current="page"><Ruby text={title} /></li>
+      </ol>
+    </nav>
+  </Container>
+
+  <Container class="pb-16">
+    <div class="flex flex-wrap gap-1.5">
+      <Badge tone={status.tone} size="md"><Ruby text={t(status.key)} /></Badge>
+      {event.isFree && <Badge tone="emerald" size="md"><Ruby text={t('common.free')} /></Badge>}
+      {eventTags.map((tag) => (
+        <Badge tone={tag!.tone} size="md"><Ruby text={resolveText(tag!.name, locale).text} /></Badge>
+      ))}
+      {event.visibility === 'invite' && (
+        <Badge tone="amber" size="md"><Ruby text={t('event.visibility.invite')} /></Badge>
+      )}
+    </div>
+
+    <h1 class="text-balance-ja mt-4 text-3xl leading-snug sm:text-4xl">
+      <LocalizedTextView field={event.title} locale={locale} />
+    </h1>
+    <p class="text-balance-ja mt-4 max-w-3xl text-lg leading-relaxed text-snow-600">
+      <LocalizedTextView field={event.summary} locale={locale} />
+    </p>
+
+    <div class="mt-10 grid gap-10 lg:grid-cols-[1fr_22rem]">
+      <div class="min-w-0">
+        <section>
+          <h2 class="flex items-center gap-2 text-xl">
+            <Icon name="info" class="size-5 text-hanabi-600" />
+            <Ruby text={t('event.overview')} />
+          </h2>
+          <div class="mt-5 space-y-5">
+            {event.body.map((paragraph) => (
+              <p class="text-balance-ja leading-loose text-snow-700">
+                <LocalizedTextView field={paragraph} locale={locale} />
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section class="mt-12">
+          <h2 class="flex items-center gap-2 text-xl">
+            <Icon name="map-pin" class="size-5 text-hanabi-600" />
+            <Ruby text={t('event.access')} />
+          </h2>
+          <p class="text-balance-ja mt-4 leading-loose text-snow-700">
+            <LocalizedTextView field={event.access} locale={locale} />
+          </p>
+          {event.mapUrl && (
+            <a
+              href={event.mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              class="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-700 ring-1 ring-brand-200 ring-inset transition-colors hover:bg-brand-50"
+            >
+              <Icon name="map-pin" class="size-4" />
+              <Ruby text={t('event.venue')} />
+              <Icon name="external" class="size-3.5" />
+            </a>
+          )}
+        </section>
+
+        {relatedReport && (
+          <section class="mt-12">
+            <a
+              href={localizePath(`/reports/${relatedReport.slug}`, locale)}
+              class="group flex items-center gap-4 rounded-card bg-white p-5 ring-1 ring-snow-200 transition-all hover:shadow-md hover:ring-brand-200"
+            >
+              <Icon name="camera" class="size-6 shrink-0 text-brand-500" />
+              <span class="min-w-0 flex-1">
+                <span class="block text-xs text-snow-500"><Ruby text={t('event.reportLink')} /></span>
+                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-brand-700">
+                  <LocalizedTextView field={relatedReport.title} locale={locale} notice={false} />
+                </span>
+              </span>
+              <Icon name="arrow-right" class="size-5 shrink-0 text-snow-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-600" />
+            </a>
+          </section>
+        )}
+      </div>
+
+      <aside class="lg:sticky lg:top-24 lg:self-start">
+        <div class="rounded-card bg-white p-6 ring-1 ring-snow-200">
+          <h2 class="text-lg"><Ruby text={t('event.details')} /></h2>
+          <div class="mt-2">
+            <InfoList>
+              <InfoRow icon="calendar" label={t('event.date')}>
+                <Ruby text={formatDateRange(startDate, endDate, locale)} />
+              </InfoRow>
+              <InfoRow icon="clock" label={t('event.time')}>
+                {timeOf(event.startAt)}〜{timeOf(event.endAt)}
+              </InfoRow>
+              <InfoRow icon="map-pin" label={t('event.venue')}>
+                <span class="font-medium"><LocalizedTextView field={event.venue} locale={locale} notice={false} /></span>
+                <span class="mt-0.5 block text-sm text-snow-500">
+                  <LocalizedTextView field={event.address} locale={locale} notice={false} />
+                </span>
+              </InfoRow>
+              <InfoRow icon="ticket" label={t('event.fee')}>
+                <span class={event.isFree ? 'font-bold text-emerald-700' : ''}>
+                  <LocalizedTextView field={event.fee} locale={locale} notice={false} />
+                </span>
+              </InfoRow>
+              {event.capacity !== undefined && (
+                <InfoRow icon="users" label={t('event.capacity')}>
+                  {withUnit(event.capacity, t('unit.people'), locale)}
+                </InfoRow>
+              )}
+              <InfoRow icon="info" label={t('event.target')}>
+                <Ruby text={t(audienceKey)} />
+              </InfoRow>
+              <InfoRow icon="globe" label={t('event.languages')}>
+                <span class="flex flex-wrap gap-1.5">
+                  {event.supportLanguages.map((code) => (
+                    <Badge><Ruby text={resolveText(supportLanguageLabel(code), locale).text} /></Badge>
+                  ))}
+                </span>
+              </InfoRow>
+              {organization && (
+                <InfoRow icon="building" label={t('event.organizer')}>
+                  <a
+                    href={localizePath(`/organizations/${organization.slug}`, locale)}
+                    class="font-medium text-brand-700 underline-offset-2 hover:underline"
+                  >
+                    <LocalizedTextView field={organization.name} locale={locale} notice={false} />
+                  </a>
+                </InfoRow>
+              )}
+            </InfoList>
+          </div>
+        </div>
+
+        {/* 申込。公開レベルと申込方法で出し分ける */}
+        <div class="mt-5 rounded-card bg-brand-50 p-6 ring-1 ring-brand-100">
+          {event.visibility === 'announce' ? (
+            <p class="flex items-start gap-2 text-sm font-bold text-brand-800">
+              <Icon name="info" class="mt-0.5 size-4 shrink-0" />
+              <Ruby text={t('event.visibility.announce')} />
+            </p>
+          ) : event.visibility === 'invite' ? (
+            <p class="flex items-start gap-2 text-sm font-bold text-brand-800">
+              <Icon name="info" class="mt-0.5 size-4 shrink-0" />
+              <Ruby text={t('event.visibility.invite')} />
+            </p>
+          ) : event.applicationType === 'none' ? (
+            <p class="flex items-start gap-2 text-sm font-bold text-brand-800">
+              <Icon name="check" class="mt-0.5 size-4 shrink-0" />
+              <Ruby text={t('event.noApply')} />
+            </p>
+          ) : event.applicationType === 'external' && (event.applicationUrl || event.applicationEmail) ? (
+            <a
+              href={event.applicationUrl || `mailto:${event.applicationEmail}`}
+              target={event.applicationUrl ? '_blank' : undefined}
+              rel={event.applicationUrl ? 'noreferrer' : undefined}
+              class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-hanabi-600 px-7 py-3.5 text-base font-bold text-white transition-colors hover:bg-hanabi-700"
+            >
+              <Ruby text={event.applicationUrl ? t('event.applyExternal') : t('event.applyByEmail')} />
+              <Icon name="arrow-right" class="size-5" />
+            </a>
+          ) : canApply && FEATURES.applicationForm ? (
+            /* B-3 の申込フォーム。フラグが有効になったらここに差し込む */
+            <p class="text-sm text-snow-600">
+              <Ruby text={t('event.apply')} />
+            </p>
+          ) : (
+            <p class="flex items-start gap-2 text-sm text-snow-600">
+              <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-brand-500" />
+              <Ruby text={t('event.contact')} />
+            </p>
+          )}
+
+          {organization?.email && (
+            <div class="mt-5 border-t border-brand-200 pt-5">
+              <p class="text-xs font-bold text-snow-600"><Ruby text={t('event.contact')} /></p>
+              <a
+                href={`mailto:${organization.email}`}
+                class="mt-2 flex items-start gap-2 text-sm text-snow-700 underline-offset-2 hover:text-brand-700 hover:underline"
+              >
+                <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-brand-500" />
+                <span class="min-w-0 break-all">{organization.email}</span>
+              </a>
+            </div>
+          )}
+        </div>
+      </aside>
+    </div>
+  </Container>
+</BaseLayout>

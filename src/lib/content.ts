@@ -1,6 +1,7 @@
 import { FIREBASE_PROJECT_ID } from '../config/site'
 import { decodeDocuments, type FirestoreDocument } from './firestore-rest'
 import { MOCK_CONTENT } from './mock-content'
+import { DEV_EVENTS } from './dev-fixtures'
 import type { ContentBundle, EventItem, Organization, ReportItem, Tag } from './types'
 
 /**
@@ -70,6 +71,12 @@ async function fetchPublished(collection: string): Promise<Record<string, unknow
   }
 }
 
+/**
+ * 表示確認用のサンプルイベントを混ぜるか。
+ * `CONTENT_FIXTURES=1 npm run build` のときだけ有効になり、本番ビルドでは読まれない。
+ */
+const useFixtures = process.env.CONTENT_FIXTURES === '1'
+
 let cached: Promise<ContentBundle> | null = null
 
 export function getContent(): Promise<ContentBundle> {
@@ -91,13 +98,19 @@ async function load(): Promise<ContentBundle> {
       '[content] Firestore から取得できませんでした。モックデータで描画します。' +
         '（Firestore API の有効化と初期データ投入が必要です）',
     )
-    return { ...MOCK_CONTENT, isMock: true }
+    return {
+      ...MOCK_CONTENT,
+      events: useFixtures ? DEV_EVENTS : MOCK_CONTENT.events,
+      isMock: true,
+    }
   }
 
   return {
     tags: (tags as unknown as Tag[]).sort((a, b) => a.order - b.order),
     organizations: organizations as unknown as Organization[],
-    events: events as unknown as EventItem[],
+    events: useFixtures
+      ? [...(events as unknown as EventItem[]), ...DEV_EVENTS]
+      : (events as unknown as EventItem[]),
     reports: reports as unknown as ReportItem[],
     isMock: false,
   }

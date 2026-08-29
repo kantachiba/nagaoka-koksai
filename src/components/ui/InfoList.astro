@@ -1,0 +1,16 @@
+---
+/**
+ * 「開催日 / 会場 / 参加費」のような項目を並べる定義リスト。
+ *
+ * ビューポートではなく「置かれた場所の幅」で切り替えるためコンテナクエリを使う。
+ * 狭いサイドバーでは縦積み、広い本文カラムではラベルと値が横並びになる。
+ */
+interface Props {
+  class?: string
+}
+const { class: className = '' } = Astro.props
+---
+
+<dl class:list={['@container divide-y divide-snow-200', className]}>
+  <slot />
+</dl>

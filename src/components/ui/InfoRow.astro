@@ -1,0 +1,19 @@
+---
+import Icon from './Icon.astro'
+import type { IconName } from './Icon.astro'
+import Ruby from '../Ruby.astro'
+
+interface Props {
+  icon: IconName
+  label: string
+}
+const { icon, label } = Astro.props
+---
+
+<div class="flex flex-col gap-1 py-3.5 @md:flex-row @md:gap-6">
+  <dt class="flex shrink-0 items-center gap-2 text-sm font-bold text-snow-600 @md:w-36">
+    <Icon name={icon} class="size-4 text-brand-500" />
+    <Ruby text={label} />
+  </dt>
+  <dd class="text-balance-ja min-w-0 flex-1 text-snow-800"><slot /></dd>
+</div>

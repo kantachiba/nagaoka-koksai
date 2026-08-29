@@ -58,8 +58,8 @@ export type Organization = {
   email?: string
   /** Instagram・公式サイトなど */
   links: Array<{ label: string; url: string }>
-  /** Cloud Storage 上のパス。未設定ならプレースホルダーを描画する */
-  imagePath?: string
+  /** photos コレクションのドキュメントID。未設定ならプレースホルダーを描画する */
+  imageId?: string
   /** 掲載情報の出典 */
   sourceUrl?: string
   sourceLabel?: LocalizedField
@@ -100,7 +100,7 @@ export type EventItem = {
   visibility: Visibility
   /** イベント単位のコメント可否（仕様 B-1） */
   commentsEnabled: boolean
-  imagePath?: string
+  imageId?: string
   instagramUrl?: string
   status: Status
   updatedAt: string
@@ -123,7 +123,7 @@ export type ReportItem = {
   tagIds: string[]
   /** 対応するイベント（あれば相互リンクする） */
   relatedEventId?: string
-  photos: Array<{ path: string; caption: LocalizedField }>
+  photos: Array<{ photoId: string; caption: LocalizedField }>
   instagramUrl?: string
   /** 公開情報にもとづく記事の場合の出典 */
   sourceUrl?: string
@@ -140,4 +140,32 @@ export type ContentBundle = {
   reports: ReportItem[]
   /** Firestore から取れず、モックで描画しているか */
   isMock: boolean
+}
+
+/**
+ * 写真。Cloud Storage は Blaze プラン必須のため、Spark を維持したまま
+ * 運営が管理画面から写真を載せられるよう、Firestore に格納する。
+ *
+ * 流れ：
+ *   1. 管理画面のブラウザ側で縮小・圧縮（長辺1600px / JPEG 品質0.8）
+ *   2. base64 にして photos コレクションへ1枚1ドキュメントで保存
+ *      （Firestore の 1MiB/doc 制限に収める）
+ *   3. ビルド前に取り出して public/photos/ に画像ファイルとして書き出す
+ *   4. 閲覧者は Firebase Hosting から普通の静的画像として受け取る
+ *      （閲覧時に Firestore へはアクセスしない）
+ *
+ * 上限の目安：1枚300KB として Firestore 無料枠 1GiB で約3,000枚。
+ * 将来 Blaze にする場合は Cloud Storage へ移行できる。
+ */
+export type Photo = {
+  id: string
+  /** base64 本体（data URI の接頭辞は含めない） */
+  data: string
+  /** 'image/jpeg' など */
+  mimeType: string
+  width: number
+  height: number
+  /** 元のファイル名（運営が管理画面で見分けるため） */
+  fileName?: string
+  createdAt: string
 }

@@ -1,0 +1,120 @@
+---
+import { localizePath, useTranslations, type Locale } from '../i18n'
+import { resolveText } from '../i18n/text'
+import { formatMonth } from '../lib/date'
+import { stripRuby } from '../lib/ruby'
+import { calendarCells, dateOf, timeOf } from '../lib/event-helpers'
+import type { EventItem, Tag } from '../lib/types'
+import Ruby from './Ruby.astro'
+
+/**
+ * 1か月ぶんのカレンダー。
+ *
+ * 静的サイトなので月送りのJSは持たず、イベントがある月をページ側で
+ * 縦に並べる。スマートフォンでは各マスが狭いため、開始時刻だけを出し、
+ * 画面が広がるとイベント名も表示する。
+ */
+interface Props {
+  month: string
+  events: EventItem[]
+  locale: Locale
+  tags: Tag[]
+}
+
+const { month, events, locale, tags } = Astro.props
+const t = useTranslations(locale)
+
+const weekdays = t('calendar.weekdays').split(',')
+const cells = calendarCells(month)
+
+/** 日付ごとにイベントをまとめておく */
+const byDate = new Map<string, EventItem[]>()
+for (const event of events) {
+  const key = dateOf(event.startAt)
+  byDate.set(key, [...(byDate.get(key) ?? []), event])
+}
+
+const toneOf = (event: EventItem): string => {
+  const tag = tags.find((candidate) => candidate.id === event.tagIds[0])
+  return tag?.tone ?? 'brand'
+}
+
+const CHIP: Record<string, string> = {
+  brand: 'bg-brand-100 text-brand-800 hover:bg-brand-200',
+  hanabi: 'bg-hanabi-100 text-hanabi-800 hover:bg-hanabi-200',
+  emerald: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200',
+  violet: 'bg-violet-100 text-violet-800 hover:bg-violet-200',
+  sky: 'bg-sky-100 text-sky-800 hover:bg-sky-200',
+  amber: 'bg-amber-100 text-amber-900 hover:bg-amber-200',
+  rose: 'bg-rose-100 text-rose-800 hover:bg-rose-200',
+  slate: 'bg-snow-200 text-snow-700 hover:bg-snow-300',
+}
+---
+
+<section class="min-w-0" aria-label={stripRuby(formatMonth(month, locale))}>
+  <h3 class="mb-3 text-lg font-bold">
+    <Ruby text={formatMonth(month, locale)} />
+  </h3>
+
+  <div class="overflow-hidden rounded-card ring-1 ring-snow-200">
+    <div class="grid grid-cols-7 bg-snow-100 text-center text-xs font-bold text-snow-600">
+      {
+        weekdays.map((day, index) => (
+          <div
+            class:list={[
+              'py-2',
+              index === 0 && 'text-rose-600',
+              index === 6 && 'text-sky-600',
+            ]}
+          >
+            <Ruby text={day} />
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="grid grid-cols-7 bg-snow-200 gap-px">
+      {
+        cells.map((cell) => {
+          const dayEvents = byDate.get(cell.date) ?? []
+          const dayNumber = Number(cell.date.slice(8))
+          return (
+            <div
+              class:list={[
+                'min-h-16 bg-white p-1 sm:min-h-24 sm:p-1.5',
+                !cell.inMonth && 'bg-snow-50',
+              ]}
+            >
+              <div
+                class:list={[
+                  'text-right text-[0.7rem] tabular-nums sm:text-xs',
+                  cell.inMonth ? 'text-snow-600' : 'text-snow-300',
+                ]}
+              >
+                {dayNumber}
+              </div>
+              <div class="mt-0.5 flex flex-col gap-0.5">
+                {dayEvents.map((event) => (
+                  <a
+                    href={localizePath(`/events/${event.slug}`, locale)}
+                    class:list={[
+                      'block min-w-0 truncate rounded px-1 py-0.5 text-[0.65rem] leading-tight font-medium transition-colors sm:text-[0.7rem]',
+                      CHIP[toneOf(event)],
+                    ]}
+                    title={stripRuby(resolveText(event.title, locale).text)}
+                  >
+                    <span class="sm:hidden">{timeOf(event.startAt)}</span>
+                    <span class="hidden sm:inline">
+                      {timeOf(event.startAt)}{' '}
+                      <Ruby text={resolveText(event.title, locale).text} />
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )
+        })
+      }
+    </div>
+  </div>
+</section>

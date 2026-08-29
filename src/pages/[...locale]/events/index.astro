@@ -1,0 +1,246 @@
+---
+import { localeStaticPaths, useTranslations, type Locale } from '../../../i18n'
+import { resolveText } from '../../../i18n/text'
+import { FILTER_VISIBLE_THRESHOLD } from '../../../config/site'
+import { findOrganization, getContent, listableEvents } from '../../../lib/content'
+import { groupByMonth, past, upcoming } from '../../../lib/event-helpers'
+import { supportLanguageLabel } from '../../../lib/support-languages'
+import { stripRuby } from '../../../lib/ruby'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import PageHero from '../../../components/layout/PageHero.astro'
+import Container from '../../../components/ui/Container.astro'
+import Icon from '../../../components/ui/Icon.astro'
+import EventCard from '../../../components/EventCard.astro'
+import EventCalendar from '../../../components/EventCalendar.astro'
+import Ruby from '../../../components/Ruby.astro'
+
+export function getStaticPaths() {
+  return localeStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
+const t = useTranslations(locale)
+
+const bundle = await getContent()
+// visibility が 'hidden' のものは一覧にも詳細にも出さない
+const visible = listableEvents(bundle)
+const upcomingEvents = upcoming(visible)
+const pastEvents = past(visible)
+const months = groupByMonth(upcomingEvents)
+
+// 件数が少ないうちは絞り込みUIを出さない（仕様 A-2）
+const showFilters = upcomingEvents.length > FILTER_VISIBLE_THRESHOLD
+
+// 実際に使われているタグ・言語だけを選択肢にする
+const usedTagIds = new Set(upcomingEvents.flatMap((event) => event.tagIds))
+const filterTags = bundle.tags.filter((tag) => usedTagIds.has(tag.id))
+const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLanguages))]
+---
+
+<BaseLayout locale={locale} path="/events" title={t('events.title')}>
+  <PageHero
+    locale={locale}
+    title={t('events.title')}
+    lead={t('events.lead')}
+    crumbs={[{ label: t('nav.home'), path: '/' }, { label: t('events.title') }]}
+  />
+
+  <Container class="pt-8 pb-16">
+    {
+      upcomingEvents.length === 0 ? (
+        <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
+          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+            <Icon name="calendar" class="size-6" />
+          </div>
+          <p class="font-bold text-snow-800"><Ruby text={t('events.empty')} /></p>
+        </div>
+      ) : (
+        <>
+          {/* 表示切替と絞り込み */}
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div role="group" aria-label={t('events.view.label')} class="flex items-center gap-0.5 rounded-full bg-snow-100 p-1">
+              <button type="button" data-view-btn="list" aria-pressed="true"
+                class="rounded-full px-4 py-1.5 text-sm font-bold transition-colors">
+                <Ruby text={t('events.view.list')} />
+              </button>
+              <button type="button" data-view-btn="calendar" aria-pressed="false"
+                class="rounded-full px-4 py-1.5 text-sm font-bold transition-colors">
+                <Ruby text={t('events.view.calendar')} />
+              </button>
+            </div>
+
+            <p class="text-sm text-snow-500">
+              <span class="text-base font-bold text-snow-800 tabular-nums" data-result-count>
+                {upcomingEvents.length}
+              </span>
+              <Ruby text={t('common.count')} />
+            </p>
+          </div>
+
+          {showFilters && (
+            <section aria-label={t('common.filter')} class="mt-5 rounded-card bg-white p-5 ring-1 ring-snow-200">
+              <div class="grid gap-4 sm:grid-cols-3">
+                <div class="min-w-0">
+                  <label for="f-tag" class="mb-1.5 block text-xs font-bold text-snow-600">
+                    <Ruby text={t('events.filter.tag')} />
+                  </label>
+                  <select id="f-tag" data-filter="tag"
+                    class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    <option value="all">{stripRuby(t('common.all'))}</option>
+                    {filterTags.map((tag) => (
+                      <option value={tag.id}>{stripRuby(resolveText(tag.name, locale).text)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div class="min-w-0">
+                  <label for="f-lang" class="mb-1.5 block text-xs font-bold text-snow-600">
+                    <Ruby text={t('events.filter.language')} />
+                  </label>
+                  <select id="f-lang" data-filter="lang"
+                    class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    <option value="all">{stripRuby(t('common.all'))}</option>
+                    {usedLangs.map((code) => (
+                      <option value={code}>
+                        {stripRuby(resolveText(supportLanguageLabel(code), locale).text)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div class="min-w-0">
+                  <label for="f-period" class="mb-1.5 block text-xs font-bold text-snow-600">
+                    <Ruby text={t('events.filter.period')} />
+                  </label>
+                  <select id="f-period" data-filter="period"
+                    class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    <option value="all">{stripRuby(t('events.period.all'))}</option>
+                    <option value="30">{stripRuby(t('events.period.month'))}</option>
+                    <option value="90">{stripRuby(t('events.period.three'))}</option>
+                  </select>
+                </div>
+              </div>
+
+              <label class="mt-4 flex items-center gap-2 text-sm font-medium text-snow-700">
+                <input type="checkbox" data-filter="free" class="size-4 rounded border-snow-300" />
+                <Ruby text={t('events.filter.freeOnly')} />
+              </label>
+            </section>
+          )}
+
+          {/* リスト表示（既定） */}
+          <div data-view="list" class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {upcomingEvents.map((event) => (
+              <EventCard
+                event={event}
+                locale={locale}
+                tags={bundle.tags}
+                organization={findOrganization(bundle, event.organizationId)}
+              />
+            ))}
+          </div>
+
+          {/* 絞り込みの結果が0件のとき */}
+          <div data-empty hidden class="mt-8 rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
+            <p class="font-bold text-snow-800"><Ruby text={t('common.noResults')} /></p>
+            <p class="mt-2 text-sm text-snow-500"><Ruby text={t('common.noResultsHint')} /></p>
+          </div>
+
+          {/* カレンダー表示 */}
+          <div data-view="calendar" hidden class="mt-8 space-y-10">
+            {months.map((group) => (
+              <EventCalendar month={group.month} events={group.events} locale={locale} tags={bundle.tags} />
+            ))}
+          </div>
+        </>
+      )
+    }
+
+    {
+      pastEvents.length > 0 && (
+        <section class="mt-16 border-t border-snow-200 pt-12">
+          <h2 class="text-2xl">
+            <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-snow-300 align-middle" />
+            <Ruby text={t('events.archive')} />
+          </h2>
+          <p class="text-balance-ja mt-3 text-sm text-snow-600"><Ruby text={t('events.archiveLead')} /></p>
+          <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {pastEvents.map((event) => (
+              <EventCard
+                event={event}
+                locale={locale}
+                tags={bundle.tags}
+                organization={findOrganization(bundle, event.organizationId)}
+              />
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </Container>
+</BaseLayout>
+
+<script>
+  // 表示切替と絞り込み。静的サイトなのでフレームワークは使わない。
+  const viewButtons = document.querySelectorAll<HTMLButtonElement>('[data-view-btn]')
+  const views = document.querySelectorAll<HTMLElement>('[data-view]')
+
+  function setView(name: string) {
+    views.forEach((view) => view.toggleAttribute('hidden', view.dataset.view !== name))
+    viewButtons.forEach((button) => {
+      const on = button.dataset.viewBtn === name
+      button.setAttribute('aria-pressed', String(on))
+      button.classList.toggle('bg-white', on)
+      button.classList.toggle('text-brand-800', on)
+      button.classList.toggle('shadow-sm', on)
+      button.classList.toggle('text-snow-500', !on)
+    })
+  }
+
+  viewButtons.forEach((button) =>
+    button.addEventListener('click', () => setView(button.dataset.viewBtn!)),
+  )
+  setView('list')
+
+  // ---- 絞り込み ----
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-event]'))
+  const countEl = document.querySelector<HTMLElement>('[data-result-count]')
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')
+  const controls = Array.from(document.querySelectorAll<HTMLSelectElement | HTMLInputElement>('[data-filter]'))
+
+  const valueOf = (name: string): string => {
+    const el = controls.find((c) => c.dataset.filter === name)
+    if (!el) return 'all'
+    return el instanceof HTMLInputElement && el.type === 'checkbox' ? String(el.checked) : el.value
+  }
+
+  function apply() {
+    const tag = valueOf('tag')
+    const lang = valueOf('lang')
+    const period = valueOf('period')
+    const freeOnly = valueOf('free') === 'true'
+
+    const limit =
+      period === 'all' ? null : new Date(Date.now() + Number(period) * 86_400_000)
+
+    let shown = 0
+    for (const card of cards) {
+      // アーカイブ側のカードは絞り込みの対象にしない
+      if (card.closest('section')) continue
+      const tags = (card.dataset.tags ?? '').split(' ')
+      const langs = (card.dataset.langs ?? '').split(' ')
+      const ok =
+        (tag === 'all' || tags.includes(tag)) &&
+        (lang === 'all' || langs.includes(lang)) &&
+        (!freeOnly || card.dataset.free === 'true') &&
+        (!limit || new Date(card.dataset.start ?? '') <= limit)
+      card.toggleAttribute('hidden', !ok)
+      if (ok) shown++
+    }
+
+    if (countEl) countEl.textContent = String(shown)
+    emptyEl?.toggleAttribute('hidden', shown > 0)
+  }
+
+  controls.forEach((control) => control.addEventListener('change', apply))
+</script>
