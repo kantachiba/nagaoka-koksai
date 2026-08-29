@@ -1,0 +1,45 @@
+name: サイトをビルドして公開
+
+# Cloud Functions を使わない（Spark プラン）構成のため、
+# Firestore の更新を自動検知できない。代わりに次の3つで反映する。
+#   1. schedule       … 30分ごとの定期ビルド（通常はこれで反映される）
+#   2. workflow_dispatch … 「すぐ反映したい」ときに Actions 画面から手動実行
+#   3. push           … コード変更時
+#
+# ⚠️ GitHub の仕様上、リポジトリに60日間まったく活動が無いと schedule は自動停止する。
+#    長期間コード変更が無い場合は、Actions 画面から一度手動実行すれば再開する。
+on:
+  schedule:
+    - cron: '0,30 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# 同時に走らせない（後から来たものを優先し、古い実行は取り消す）
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # ビルド時に Firestore の公開済みコンテンツを読んで静的HTMLに焼き込む。
+      # 公開読み取りを許可しているので、ここに認証情報は要らない。
+      - run: npm run build
+
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: nagaoka-kokusai-portal
