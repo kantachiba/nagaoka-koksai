@@ -2,24 +2,20 @@
   "hosting": {
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
+
+    "//": "Astro が全ページを実ファイルとして出力するため、SPA の rewrite は不要。",
+    "cleanUrls": true,
+    "trailingSlash": false,
+
     "headers": [
       {
-        "//": "SPA なので HTML は毎回取り直す。あわせて開発中サイトを検索避けする。",
+        "//": "既定は no-cache。/en のような拡張子なしのパスにも効かせるため ** で受ける",
         "source": "**",
-        "headers": [
-          { "key": "Cache-Control", "value": "no-cache" },
-          { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-        ]
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       },
       {
         "//": "ビルド成果物はファイル名にハッシュが入るので長期キャッシュ（上のルールを上書き）",
-        "source": "/assets/**",
+        "source": "/_astro/**",
         "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
       }
     ]

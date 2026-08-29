@@ -1,0 +1,32 @@
+---
+import { parseRuby } from '../lib/ruby'
+
+/**
+ * ルビ記法 {漢字|よみ} を <ruby> に変換して描画する。
+ *
+ * <rp> はルビ非対応環境で「漢字(よみ)」と読めるようにするためのフォールバック。
+ * 記法を含まない文字列はそのまま素のテキストとして出るので、
+ * 日本語版・英語版でもこのコンポーネントを通して問題ない。
+ */
+interface Props {
+  text: string
+}
+
+const { text } = Astro.props
+const segments = parseRuby(text)
+---
+
+{
+  segments.map((segment) =>
+    segment.ruby ? (
+      <ruby>
+        {segment.text}
+        <rp>(</rp>
+        <rt>{segment.ruby}</rt>
+        <rp>)</rp>
+      </ruby>
+    ) : (
+      segment.text
+    ),
+  )
+}

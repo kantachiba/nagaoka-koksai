@@ -1,0 +1,19 @@
+---
+/** ページ共通の横幅・左右余白 */
+interface Props {
+  class?: string
+  size?: 'default' | 'narrow'
+}
+
+const { class: className = '', size = 'default' } = Astro.props
+---
+
+<div
+  class:list={[
+    'mx-auto w-full px-4 sm:px-6 lg:px-8',
+    size === 'narrow' ? 'max-w-3xl' : 'max-w-6xl',
+    className,
+  ]}
+>
+  <slot />
+</div>

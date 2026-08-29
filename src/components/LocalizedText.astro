@@ -1,0 +1,35 @@
+---
+import { useTranslations, type Locale } from '../i18n'
+import { needsFallbackNotice, resolveText, type LocalizedField } from '../i18n/text'
+import Ruby from './Ruby.astro'
+
+/**
+ * CMS の多言語フィールドを表示する。
+ *
+ * 要求した言語に翻訳が無いときは日本語で表示し、「この項目は日本語のみです」と
+ * 明示する（仕様 A-1）。ふりがな版でふりがなが未入力なだけの場合は、中身が同じ
+ * 日本語なので断り書きを出さない。
+ */
+interface Props {
+  field: LocalizedField | undefined
+  locale: Locale
+  /** 断り書きを出すか。カードなど狭い場所では false にする */
+  notice?: boolean
+}
+
+const { field, locale, notice = true } = Astro.props
+const t = useTranslations(locale)
+const resolved = resolveText(field, locale)
+const showNotice = notice && needsFallbackNotice(resolved)
+---
+
+<Ruby text={resolved.text} />{
+  showNotice && (
+    <span
+      lang="ja"
+      class="ml-1.5 inline-block rounded-full bg-snow-100 px-2 py-0.5 align-middle text-[0.7rem] font-semibold text-snow-500 ring-1 ring-snow-300 ring-inset"
+    >
+      {t('content.jaOnly')}
+    </span>
+  )
+}

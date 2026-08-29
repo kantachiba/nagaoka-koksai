@@ -1,0 +1,51 @@
+---
+import { LOCALES, getLocaleMeta, localizePath, stripLocale, useTranslations, type Locale } from '../i18n'
+import Icon from './ui/Icon.astro'
+
+/**
+ * 言語切替。静的サイトなので JS を使わず、同じページの各言語版への
+ * ただのリンクとして実装している。選択は URL に載るので、リンクを
+ * たどっている限り言語は保持される。
+ */
+interface Props {
+  locale: Locale
+  variant?: 'inline' | 'block'
+}
+
+const { locale, variant = 'inline' } = Astro.props
+const t = useTranslations(locale)
+
+// 現在のパスから言語プレフィックスを外し、各言語版のURLを組み立てる
+const basePath = stripLocale(Astro.url.pathname.replace(/\/+$/, '') || '/')
+---
+
+<div
+  role="group"
+  aria-label={t('lang.switch')}
+  class:list={['flex items-center gap-0.5 rounded-full bg-snow-100 p-1', variant === 'block' && 'w-full']}
+>
+  <Icon name="globe" class="ml-1.5 size-4 shrink-0 text-snow-500" />
+  {
+    LOCALES.map((code) => {
+      const meta = getLocaleMeta(code)
+      const isActive = code === locale
+      return (
+        <a
+          href={localizePath(basePath, code)}
+          lang={meta.htmlLang}
+          hreflang={meta.htmlLang}
+          aria-current={isActive ? 'true' : undefined}
+          class:list={[
+            'rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap transition-colors',
+            variant === 'block' && 'flex-1 text-center',
+            isActive
+              ? 'bg-white text-brand-800 shadow-sm'
+              : 'text-snow-500 hover:text-snow-800',
+          ]}
+        >
+          {meta.shortLabel}
+        </a>
+      )
+    })
+  }
+</div>

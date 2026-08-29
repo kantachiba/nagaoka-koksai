@@ -1,21 +1,16 @@
-import type { Lang } from '../i18n/types'
+import { getLocaleMeta, type Locale } from '../i18n'
+
+/**
+ * 日付の整形。
+ *
+ * ふりがな版では単位の漢字にルビ記法を付けて返す。呼び出し側は
+ * <Ruby> を通して描画するので、そのまま <ruby> になる。
+ */
 
 const WEEKDAY_JA = ['日', '月', '火', '水', '木', '金', '土']
+const WEEKDAY_JA_YOMI = ['にち', 'げつ', 'か', 'すい', 'もく', 'きん', 'ど']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTH_EN = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-]
+const MONTH_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /** 'YYYY-MM-DD' をローカルタイムの Date に変換（UTC解釈による日付ズレを避ける） */
 export function parseIso(iso: string): Date {
@@ -31,26 +26,19 @@ export function toIso(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-/** 今日から n 日後（負数なら n 日前）の 'YYYY-MM-DD' */
-export function isoDaysFromToday(days: number): string {
-  const base = new Date()
-  base.setHours(0, 0, 0, 0)
-  base.setDate(base.getDate() + days)
-  return toIso(base)
-}
-
-/** 今日の 'YYYY-MM-DD' */
-export const todayIso = (): string => isoDaysFromToday(0)
+export const todayIso = (): string => toIso(new Date())
 
 /** 指定日までの残り日数（過去なら負数） */
 export function daysUntil(iso: string): number {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const diff = parseIso(iso).getTime() - today.getTime()
-  return Math.round(diff / 86_400_000)
+  return Math.round((parseIso(iso).getTime() - today.getTime()) / 86_400_000)
 }
 
 export const isPast = (iso: string): boolean => daysUntil(iso) < 0
+
+/** その言語が日本語表記かどうか（ja と furigana が該当） */
+const isJapanese = (locale: Locale): boolean => getLocaleMeta(locale).htmlLang === 'ja'
 
 type FormatOptions = {
   /** 曜日を含めるか（既定: true） */
@@ -59,8 +47,11 @@ type FormatOptions = {
   year?: boolean
 }
 
-/** 日付を各言語の表記で整形する */
-export function formatDate(iso: string, lang: Lang, options: FormatOptions = {}): string {
+/**
+ * 日付を表示用に整形する。
+ * ふりがな版は「2026{年|ねん}8{月|がつ}15{日|にち}（{土|ど}）」のように返す。
+ */
+export function formatDate(iso: string, locale: Locale, options: FormatOptions = {}): string {
   const { weekday = true, year = true } = options
   const date = parseIso(iso)
   const y = date.getFullYear()
@@ -68,54 +59,48 @@ export function formatDate(iso: string, lang: Lang, options: FormatOptions = {})
   const d = date.getDate()
   const w = date.getDay()
 
-  if (lang === 'en') {
+  if (!isJapanese(locale)) {
     const head = weekday ? `${WEEKDAY_EN[w]}, ` : ''
     const tail = year ? `, ${y}` : ''
     return `${head}${MONTH_EN[m]} ${d}${tail}`
   }
 
-  if (lang === 'easy') {
-    const head = year ? `${y}年 ` : ''
-    const tail = weekday ? `（${WEEKDAY_JA[w]}よう日）` : ''
-    return `${head}${m + 1}月${d}日${tail}`
-  }
+  const ruby = locale !== 'ja'
+  const unit = (kanji: string, yomi: string) => (ruby ? `{${kanji}|${yomi}}` : kanji)
 
-  const head = year ? `${y}年` : ''
-  const tail = weekday ? `（${WEEKDAY_JA[w]}）` : ''
-  return `${head}${m + 1}月${d}日${tail}`
+  const head = year ? `${y}${unit('年', 'ねん')}` : ''
+  const body = `${m + 1}${unit('月', 'がつ')}${d}${unit('日', 'にち')}`
+  const tail = weekday ? `（${unit(WEEKDAY_JA[w], WEEKDAY_JA_YOMI[w])}）` : ''
+  return `${head}${body}${tail}`
 }
 
-/**
- * 開始日〜終了日の範囲表記（終了日がなければ単日表記）。
- * 同じ年をまたがない場合、年は日本語なら先頭に、英語なら末尾に一度だけ置きます。
- */
-export function formatDateRange(startIso: string, endIso: string | undefined, lang: Lang): string {
-  if (!endIso || endIso === startIso) return formatDate(startIso, lang)
+/** 開始日〜終了日の範囲表記（終了日がなければ単日表記） */
+export function formatDateRange(startIso: string, endIso: string | undefined, locale: Locale): string {
+  if (!endIso || endIso === startIso) return formatDate(startIso, locale)
   const sameYear = startIso.slice(0, 4) === endIso.slice(0, 4)
 
-  if (lang === 'en') {
-    const start = formatDate(startIso, lang, { year: !sameYear })
-    return `${start} – ${formatDate(endIso, lang)}`
+  if (!isJapanese(locale)) {
+    return `${formatDate(startIso, locale, { year: !sameYear })} – ${formatDate(endIso, locale)}`
   }
-
-  const end = formatDate(endIso, lang, { year: !sameYear })
-  return `${formatDate(startIso, lang)}〜${end}`
+  return `${formatDate(startIso, locale)}〜${formatDate(endIso, locale, { year: !sameYear })}`
 }
 
 /** 'YYYY-MM' を月名表記に */
-export function formatMonth(yearMonth: string, lang: Lang): string {
+export function formatMonth(yearMonth: string, locale: Locale): string {
   const [y, m] = yearMonth.split('-').map(Number)
-  if (lang === 'en') return `${MONTH_EN[m - 1]} ${y}`
-  return `${y}年${m}月`
+  if (!isJapanese(locale)) return `${MONTH_EN[m - 1]} ${y}`
+  const unit = (kanji: string, yomi: string) => (locale === 'ja' ? kanji : `{${kanji}|${yomi}}`)
+  return `${y}${unit('年', 'ねん')}${m}${unit('月', 'がつ')}`
 }
 
-/** カードの日付ブロック用の短い表記 */
-export function dateParts(iso: string, lang: Lang) {
+/** カードの日付ブロック用の短い表記（ルビは付けない） */
+export function dateParts(iso: string, locale: Locale) {
   const date = parseIso(iso)
+  const japanese = isJapanese(locale)
   return {
-    month: lang === 'en' ? MONTH_EN[date.getMonth()] : `${date.getMonth() + 1}月`,
+    month: japanese ? `${date.getMonth() + 1}月` : MONTH_EN[date.getMonth()],
     day: String(date.getDate()),
-    weekday: lang === 'en' ? WEEKDAY_EN[date.getDay()] : WEEKDAY_JA[date.getDay()],
+    weekday: japanese ? WEEKDAY_JA[date.getDay()] : WEEKDAY_EN[date.getDay()],
     year: String(date.getFullYear()),
   }
 }

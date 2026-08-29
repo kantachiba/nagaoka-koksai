@@ -1,0 +1,132 @@
+---
+import { localizePath, stripLocale, useTranslations, type Locale, type UiKey } from '../../i18n'
+import { resolveText } from '../../i18n/text'
+import { SITE_NAME } from '../../config/site'
+import Container from '../ui/Container.astro'
+import Icon from '../ui/Icon.astro'
+import LanguageSwitcher from '../LanguageSwitcher.astro'
+import Ruby from '../Ruby.astro'
+import Logo from './Logo.astro'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const t = useTranslations(locale)
+
+const NAV: Array<{ path: string; key: UiKey }> = [
+  { path: '/events', key: 'nav.events' },
+  { path: '/reports', key: 'nav.reports' },
+  { path: '/organizations', key: 'nav.organizations' },
+]
+
+const currentPath = stripLocale(Astro.url.pathname.replace(/\/+$/, '') || '/')
+const siteName = resolveText(SITE_NAME, locale).text
+---
+
+<header class="sticky top-0 z-40 border-b border-snow-200 bg-white/90 backdrop-blur-md">
+  <Container>
+    <div class="flex h-16 items-center justify-between gap-4 sm:h-18">
+      <a
+        href={localizePath('/', locale)}
+        class="flex min-w-0 items-center gap-2.5 rounded-lg py-1 transition-opacity hover:opacity-80"
+      >
+        <Logo class="size-9 shrink-0" />
+        <span class="text-balance-ja min-w-0 text-sm font-bold text-brand-900 sm:text-base">
+          <Ruby text={siteName} />
+        </span>
+      </a>
+
+      <nav aria-label={t('nav.main')} class="hidden items-center gap-1 lg:flex">
+        {
+          NAV.map((item) => {
+            const isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`)
+            return (
+              <a
+                href={localizePath(item.path, locale)}
+                aria-current={isActive ? 'page' : undefined}
+                class:list={[
+                  'relative rounded-lg px-4 py-2 text-sm font-bold transition-colors',
+                  isActive
+                    ? 'text-brand-800 after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-hanabi-500'
+                    : 'text-snow-600 hover:bg-snow-100 hover:text-snow-900',
+                ]}
+              >
+                <Ruby text={t(item.key)} />
+              </a>
+            )
+          })
+        }
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <div class="hidden sm:block">
+          <LanguageSwitcher locale={locale} />
+        </div>
+
+        <button
+          type="button"
+          id="menu-toggle"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          aria-label={t('nav.openMenu')}
+          data-label-open={t('nav.openMenu')}
+          data-label-close={t('nav.closeMenu')}
+          class="inline-flex size-10 items-center justify-center rounded-lg text-snow-700 transition-colors hover:bg-snow-100 lg:hidden"
+        >
+          <Icon name="menu" class="size-6" id="menu-icon-open" />
+          <Icon name="close" class="hidden size-6" id="menu-icon-close" />
+        </button>
+      </div>
+    </div>
+  </Container>
+
+  <div id="mobile-menu" hidden class="border-t border-snow-200 bg-white lg:hidden">
+    <Container class="py-4">
+      <nav aria-label={t('nav.main')} class="flex flex-col gap-1">
+        {
+          [{ path: '/', key: 'nav.home' as UiKey }, ...NAV].map((item) => {
+            const isActive = currentPath === item.path
+            return (
+              <a
+                href={localizePath(item.path, locale)}
+                aria-current={isActive ? 'page' : undefined}
+                class:list={[
+                  'rounded-lg px-4 py-3 font-bold transition-colors',
+                  isActive ? 'bg-brand-50 text-brand-800' : 'text-snow-700 hover:bg-snow-100',
+                ]}
+              >
+                <Ruby text={t(item.key)} />
+              </a>
+            )
+          })
+        }
+      </nav>
+      <div class="mt-4 border-t border-snow-200 pt-4 sm:hidden">
+        <p class="mb-2 text-xs font-bold text-snow-500"><Ruby text={t('lang.label')} /></p>
+        <LanguageSwitcher locale={locale} variant="block" />
+      </div>
+    </Container>
+  </div>
+</header>
+
+<script>
+  // モバイルメニューの開閉。静的サイトなのでフレームワークは使わない。
+  const toggle = document.getElementById('menu-toggle')
+  const menu = document.getElementById('mobile-menu')
+  const iconOpen = document.getElementById('menu-icon-open')
+  const iconClose = document.getElementById('menu-icon-close')
+
+  toggle?.addEventListener('click', () => {
+    const willOpen = toggle.getAttribute('aria-expanded') !== 'true'
+    toggle.setAttribute('aria-expanded', String(willOpen))
+    toggle.setAttribute(
+      'aria-label',
+      (willOpen ? toggle.dataset.labelClose : toggle.dataset.labelOpen) ?? '',
+    )
+    menu?.toggleAttribute('hidden', !willOpen)
+    iconOpen?.classList.toggle('hidden', willOpen)
+    iconClose?.classList.toggle('hidden', !willOpen)
+  })
+</script>

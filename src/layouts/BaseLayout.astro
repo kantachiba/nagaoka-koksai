@@ -1,0 +1,133 @@
+---
+import '../styles/global.css'
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  getLocaleMeta,
+  localizePath,
+  useTranslations,
+  type Locale,
+} from '../i18n'
+import { resolveText } from '../i18n/text'
+import { stripRuby } from '../lib/ruby'
+import { NOINDEX, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site'
+import Container from '../components/ui/Container.astro'
+import Icon from '../components/ui/Icon.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+
+/**
+ * 全ページ共通の外枠。<head> のメタ情報もここで組み立てる。
+ *
+ * title / description はルビ記法を取り除いた素のテキストにする
+ * （<title> や og:description にはマークアップを置けないため）。
+ */
+interface Props {
+  locale: Locale
+  /** ページ固有のタイトル（ルビ記法を含んでよい）。省略時はサイト名のみ */
+  title?: string
+  description?: string
+  /** 言語を含まないパス（'/events' など）。hreflang と canonical に使う */
+  path: string
+  /** OGP 画像の絶対URL。未指定ならサイト共通の既定値 */
+  ogImage?: string
+}
+
+const { locale, title, description, path, ogImage } = Astro.props
+
+const t = useTranslations(locale)
+const meta = getLocaleMeta(locale)
+
+const siteName = stripRuby(resolveText(SITE_NAME, locale).text)
+const pageTitle = title ? stripRuby(title) : ''
+const separator = meta.htmlLang === 'en' ? ' | ' : '｜'
+const fullTitle = pageTitle ? `${pageTitle}${separator}${siteName}` : siteName
+
+const metaDescription = stripRuby(
+  description ?? resolveText(SITE_DESCRIPTION, locale).text,
+)
+
+const absolute = (p: string) => new URL(p, SITE_URL).href
+
+/**
+ * ふりがな版は日本語版の重複コンテンツなので canonical を日本語版に向ける。
+ * 英語版は独立したページなので自分自身を指す。
+ */
+const canonical =
+  meta.htmlLang === 'ja' ? absolute(localizePath(path, DEFAULT_LOCALE)) : absolute(localizePath(path, locale))
+
+/** hreflang は htmlLang ごとに代表を1つだけ選ぶ（LOCALES の並び順で先勝ち） */
+const hreflangLocales = LOCALES.filter(
+  (code, index) =>
+    LOCALES.findIndex((other) => getLocaleMeta(other).htmlLang === getLocaleMeta(code).htmlLang) ===
+    index,
+)
+
+const ogImageUrl = ogImage ?? absolute('/og-default.png')
+---
+
+<!doctype html>
+<html lang={meta.htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={metaDescription} />
+    <link rel="canonical" href={canonical} />
+
+    {
+      /* 実データが揃うまでは検索エンジンに登録させない（config/site.ts の NOINDEX） */
+      NOINDEX && <meta name="robots" content="noindex, nofollow" />
+    }
+
+    {
+      /*
+        hreflang は言語ごとに1つだけ出す。ふりがな版は日本語版と同じ 'ja' なので、
+        両方出すと検索エンジンには競合として扱われる（canonical も日本語版を指している）。
+      */
+      hreflangLocales.map((code) => (
+        <link
+          rel="alternate"
+          hreflang={getLocaleMeta(code).htmlLang}
+          href={absolute(localizePath(path, code))}
+        />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={absolute(localizePath(path, DEFAULT_LOCALE))} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={absolute(localizePath(path, locale))} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:locale" content={meta.htmlLang === 'en' ? 'en_US' : 'ja_JP'} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <slot name="head" />
+  </head>
+
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+    >
+      {t('nav.skipToContent')}
+    </a>
+
+    <div class="bg-hanabi-800 text-hanabi-50">
+      <Container class="flex items-start gap-3 py-2.5">
+        <Icon name="info" class="mt-0.5 size-4 shrink-0 text-hanabi-300" />
+        <p class="text-balance-ja flex-1 text-xs leading-relaxed">{t('notice.prototype')}</p>
+      </Container>
+    </div>
+
+    <Header locale={locale} />
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <Footer locale={locale} />
+  </body>
+</html>

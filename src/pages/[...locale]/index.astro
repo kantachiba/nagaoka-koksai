@@ -1,0 +1,158 @@
+---
+import { localeStaticPaths, localizePath, useTranslations, type Locale, type UiKey } from '../../i18n'
+import { resolveText } from '../../i18n/text'
+import { SITE_DESCRIPTION } from '../../config/site'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Container from '../../components/ui/Container.astro'
+import Icon from '../../components/ui/Icon.astro'
+import type { IconName } from '../../components/ui/Icon.astro'
+import Ruby from '../../components/Ruby.astro'
+
+export function getStaticPaths() {
+  return localeStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
+const t = useTranslations(locale)
+
+const heroLines = t('home.hero.title').split('\n')
+
+const GUIDE: Array<{ icon: IconName; titleKey: UiKey; bodyKey: UiKey }> = [
+  { icon: 'search', titleKey: 'home.guide.step1.title', bodyKey: 'home.guide.step1.body' },
+  { icon: 'mail', titleKey: 'home.guide.step2.title', bodyKey: 'home.guide.step2.body' },
+  { icon: 'users', titleKey: 'home.guide.step3.title', bodyKey: 'home.guide.step3.body' },
+]
+---
+
+<BaseLayout locale={locale} path="/" description={resolveText(SITE_DESCRIPTION, locale).text}>
+  <section class="relative overflow-hidden bg-brand-950 text-white">
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+      <svg viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 size-full">
+        <defs>
+          <radialGradient id="hero-glow" cx="0.78" cy="0.28" r="0.6">
+            <stop offset="0%" stop-color="#3b64b4" stop-opacity="0.55"></stop>
+            <stop offset="100%" stop-color="#111b33" stop-opacity="0"></stop>
+          </radialGradient>
+        </defs>
+        <rect width="1200" height="600" fill="url(#hero-glow)"></rect>
+        {
+          [
+            { cx: 930, cy: 170, r: 130, spokes: 24, color: '#ffa971', opacity: 0.5 },
+            { cx: 1090, cy: 330, r: 84, spokes: 18, color: '#8aabdf', opacity: 0.35 },
+            { cx: 790, cy: 380, r: 56, spokes: 14, color: '#ffcda8', opacity: 0.25 },
+          ].map((burst) => (
+            <g stroke={burst.color} stroke-linecap="round">
+              {Array.from({ length: burst.spokes }, (_, i) => {
+                const angle = (i / burst.spokes) * Math.PI * 2
+                const outer = burst.r * (i % 2 === 0 ? 1 : 0.72)
+                return (
+                  <line
+                    x1={burst.cx + Math.cos(angle) * burst.r * 0.18}
+                    y1={burst.cy + Math.sin(angle) * burst.r * 0.18}
+                    x2={burst.cx + Math.cos(angle) * outer}
+                    y2={burst.cy + Math.sin(angle) * outer}
+                    stroke-width={i % 2 === 0 ? 1.8 : 1}
+                    opacity={burst.opacity}
+                  />
+                )
+              })}
+            </g>
+          ))
+        }
+        <g fill="none" stroke="#5b84cc">
+          {
+            [0, 1, 2, 3].map((i) => (
+              <path
+                d={`M -50 ${470 + i * 34} C 260 ${430 + i * 34}, 560 ${540 + i * 34}, 1250 ${450 + i * 34}`}
+                stroke-width={1 + i * 0.6}
+                opacity={0.16 + i * 0.05}
+              />
+            ))
+          }
+        </g>
+      </svg>
+      <div class="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-brand-950 to-transparent"></div>
+    </div>
+
+    <Container class="relative py-16 sm:py-24 lg:py-28">
+      <div class="max-w-2xl">
+        <p
+          class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-bold text-brand-100 ring-1 ring-white/15 ring-inset"
+        >
+          <span class="size-1.5 rounded-full bg-hanabi-400"></span>
+          <Ruby text={t('home.hero.badge')} />
+        </p>
+
+        <h1 class="text-balance-ja mt-6 text-4xl leading-[1.25] font-bold text-white sm:text-5xl lg:text-6xl">
+          {heroLines.map((line, i) => (<>{i > 0 && <br />}<Ruby text={line} /></>))}
+        </h1>
+
+        <p class="text-balance-ja mt-6 max-w-xl leading-relaxed text-brand-100">
+          <Ruby text={t('home.hero.lead')} />
+        </p>
+
+        <div class="mt-9 flex flex-wrap gap-3">
+          <a
+            href={localizePath('/events', locale)}
+            class="inline-flex items-center justify-center gap-2.5 rounded-full bg-hanabi-600 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-hanabi-700"
+          >
+            <Icon name="calendar" class="size-5" />
+            <Ruby text={t('home.hero.ctaEvents')} />
+          </a>
+          <a
+            href={localizePath('/organizations', locale)}
+            class="inline-flex items-center justify-center gap-2.5 rounded-full bg-white/10 px-7 py-3.5 text-base font-bold text-white ring-1 ring-white/25 ring-inset transition-colors hover:bg-white/20"
+          >
+            <Icon name="users" class="size-5" />
+            <Ruby text={t('home.hero.ctaOrgs')} />
+          </a>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  {/* Phase 1 で microCMS を接続すると、ここに直近イベント・活動報告・団体が並ぶ */}
+  <Container class="py-16 sm:py-20">
+    <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
+      <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+        <Icon name="calendar" class="size-6" />
+      </div>
+      <p class="font-bold text-snow-800"><Ruby text={t('home.underConstruction')} /></p>
+      <p class="text-balance-ja mx-auto mt-2 max-w-md text-sm text-snow-500">
+        <Ruby text={t('home.underConstructionBody')} />
+      </p>
+    </div>
+  </Container>
+
+  <div class="bg-brand-50 py-16 sm:py-20">
+    <Container>
+      <div class="mb-8 max-w-2xl">
+        <p class="mb-2 text-xs font-bold tracking-widest text-hanabi-700 uppercase">Guide</p>
+        <h2 class="text-2xl sm:text-3xl">
+          <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-hanabi-500 align-middle sm:h-7"></span>
+          <Ruby text={t('home.guide.title')} />
+        </h2>
+        <p class="text-balance-ja mt-3 text-snow-600"><Ruby text={t('home.guide.lead')} /></p>
+      </div>
+
+      <ol class="grid gap-6 sm:grid-cols-3">
+        {
+          GUIDE.map((step, index) => (
+            <li class="relative min-w-0 rounded-card bg-white p-6 ring-1 ring-brand-100">
+              <span class="absolute top-5 right-5 text-4xl font-bold text-brand-100 tabular-nums">
+                {index + 1}
+              </span>
+              <div class="flex size-11 items-center justify-center rounded-xl bg-brand-700 text-white">
+                <Icon name={step.icon} class="size-5" />
+              </div>
+              <h3 class="mt-4 text-lg"><Ruby text={t(step.titleKey)} /></h3>
+              <p class="text-balance-ja mt-2 text-sm leading-relaxed text-snow-600">
+                <Ruby text={t(step.bodyKey)} />
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </Container>
+  </div>
+</BaseLayout>

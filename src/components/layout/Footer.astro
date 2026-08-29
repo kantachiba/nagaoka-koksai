@@ -1,0 +1,84 @@
+---
+import { localizePath, useTranslations, type Locale, type UiKey } from '../../i18n'
+import { resolveText } from '../../i18n/text'
+import { SITE_NAME } from '../../config/site'
+import Container from '../ui/Container.astro'
+import Icon from '../ui/Icon.astro'
+import LanguageSwitcher from '../LanguageSwitcher.astro'
+import Ruby from '../Ruby.astro'
+import Logo from './Logo.astro'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const t = useTranslations(locale)
+
+const LINKS: Array<{ path: string; key: UiKey }> = [
+  { path: '/', key: 'nav.home' },
+  { path: '/events', key: 'nav.events' },
+  { path: '/reports', key: 'nav.reports' },
+  { path: '/organizations', key: 'nav.organizations' },
+]
+
+const siteName = resolveText(SITE_NAME, locale).text
+---
+
+<footer class="bg-brand-900 text-brand-100">
+  <Container class="py-14">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-2.5">
+          <Logo class="size-10 shrink-0" />
+          <span class="text-balance-ja text-lg font-bold text-white"><Ruby text={siteName} /></span>
+        </div>
+        <p class="text-balance-ja mt-4 max-w-md text-sm leading-relaxed text-brand-200">
+          <Ruby text={t('footer.aboutBody')} />
+        </p>
+        <div class="mt-6">
+          <p class="mb-2 text-xs font-bold text-brand-300"><Ruby text={t('lang.label')} /></p>
+          <div class="inline-block"><LanguageSwitcher locale={locale} /></div>
+        </div>
+      </div>
+
+      <nav aria-labelledby="footer-contents">
+        <h2 id="footer-contents" class="text-sm font-bold text-white">
+          <Ruby text={t('footer.contents')} />
+        </h2>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          {
+            LINKS.map((link) => (
+              <li>
+                <a
+                  href={localizePath(link.path, locale)}
+                  class="inline-flex items-center gap-1.5 text-brand-200 transition-colors hover:text-white hover:underline"
+                >
+                  <Icon name="arrow-right" class="size-3.5 text-brand-400" />
+                  <Ruby text={t(link.key)} />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div>
+        <h2 class="text-sm font-bold text-white"><Ruby text={t('footer.contact')} /></h2>
+        <p class="text-balance-ja mt-4 text-sm leading-relaxed text-brand-200">
+          <Ruby text={t('footer.contactBody')} />
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="mt-12 flex flex-col gap-3 border-t border-brand-800 pt-6 text-xs text-brand-300 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>© {new Date().getFullYear()} Nagaoka International Portal</p>
+      <p class="flex items-center gap-1.5">
+        <Icon name="info" class="size-3.5" />
+        <Ruby text={t('footer.copyright')} />
+      </p>
+    </div>
+  </Container>
+</footer>
