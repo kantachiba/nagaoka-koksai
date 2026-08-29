@@ -8,12 +8,17 @@ rules_version = '2';
 //  - 書き込みは運営メンバー（admins コレクションに登録された UID）だけ。
 //  - 下書きは運営メンバーだけが読める。
 //
-// ⚠️ Cloud Functions を使わない構成のため、バリデーションはここで完結させる。
+// ⚠️ Firestore の「ルールはフィルタではない」仕様のため、一覧取得（list）では
+//    個々のドキュメントの status を評価できない。取得側は必ず
+//    where('status','==','published') を付けたクエリを投げること
+//    （src/lib/content.ts の runQuery を参照）。
+//
+// ⚠️ Cloud Functions を使わない構成のため、入力の検証もここで完結させる。
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 運営メンバーの名簿。ここへの書き込みはコンソールからのみ（クライアント不可）
+    // 運営メンバーの名簿。書き込みはコンソールからのみ（クライアント不可）
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;
@@ -28,12 +33,25 @@ service cloud.firestore {
       return resource.data.status == 'published';
     }
 
-    // 公開コンテンツ。読みは公開済みのみ、書きは運営のみ
-    match /{collection}/{docId} {
-      allow read: if collection in ['events', 'reports', 'organizations', 'tags']
-        && (isPublished() || isAdmin());
-      allow create, update, delete: if collection in ['events', 'reports', 'organizations', 'tags']
-        && isAdmin();
+    // タグは分類そのもので秘密がないため、下書きの概念を持たせず常に読める
+    match /tags/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /events/{id} {
+      allow read: if isPublished() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /reports/{id} {
+      allow read: if isPublished() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /organizations/{id} {
+      allow read: if isPublished() || isAdmin();
+      allow write: if isAdmin();
     }
 
     // ------------------------------------------------------------ B群（既定は無効）

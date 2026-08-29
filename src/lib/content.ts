@@ -16,13 +16,17 @@ import type { ContentBundle, EventItem, Organization, ReportItem, Tag } from './
 
 const BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`
 
-type FetchResult = { documents?: FirestoreDocument[]; error?: unknown }
+type ListResponse = { documents?: FirestoreDocument[]; error?: unknown }
+type QueryRow = { document?: FirestoreDocument }
 
-async function fetchCollection(name: string): Promise<Record<string, unknown>[] | null> {
+/**
+ * タグのように「下書き」の概念が無く、常に公開されるコレクションを一覧取得する。
+ */
+async function fetchAll(collection: string): Promise<Record<string, unknown>[] | null> {
   try {
-    const response = await fetch(`${BASE}/${name}?pageSize=300`)
+    const response = await fetch(`${BASE}/${collection}?pageSize=300`)
     if (!response.ok) return null
-    const json = (await response.json()) as FetchResult
+    const json = (await response.json()) as ListResponse
     if (json.error) return null
     return decodeDocuments(json.documents)
   } catch {
@@ -30,9 +34,41 @@ async function fetchCollection(name: string): Promise<Record<string, unknown>[] 
   }
 }
 
-/** 公開済みだけを残す */
-const published = <T extends { status?: string }>(items: T[]): T[] =>
-  items.filter((item) => item.status === 'published')
+/**
+ * 公開済みドキュメントだけを取得する。
+ *
+ * Firestore は「ルールはフィルタではない」ため、単純な一覧取得だと
+ * status を評価できず拒否される。クエリ自体に status の条件を入れることで
+ * セキュリティルールの条件を満たす（firestore.rules のコメントを参照）。
+ */
+async function fetchPublished(collection: string): Promise<Record<string, unknown>[] | null> {
+  try {
+    const response = await fetch(`${BASE}:runQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: collection }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'status' },
+              op: 'EQUAL',
+              value: { stringValue: 'published' },
+            },
+          },
+          limit: 300,
+        },
+      }),
+    })
+    if (!response.ok) return null
+    const rows = (await response.json()) as QueryRow[]
+    if (!Array.isArray(rows)) return null
+    // 該当0件のときは document を持たない行が1つ返るため、取り除く
+    return decodeDocuments(rows.map((row) => row.document).filter((d): d is FirestoreDocument => !!d))
+  } catch {
+    return null
+  }
+}
 
 let cached: Promise<ContentBundle> | null = null
 
@@ -43,10 +79,10 @@ export function getContent(): Promise<ContentBundle> {
 
 async function load(): Promise<ContentBundle> {
   const [tags, organizations, events, reports] = await Promise.all([
-    fetchCollection('tags'),
-    fetchCollection('organizations'),
-    fetchCollection('events'),
-    fetchCollection('reports'),
+    fetchAll('tags'),
+    fetchPublished('organizations'),
+    fetchPublished('events'),
+    fetchPublished('reports'),
   ])
 
   // 1つでも取得できなければ、中途半端な状態で出さずモックへ倒す
@@ -60,9 +96,9 @@ async function load(): Promise<ContentBundle> {
 
   return {
     tags: (tags as unknown as Tag[]).sort((a, b) => a.order - b.order),
-    organizations: published(organizations as unknown as Organization[]),
-    events: published(events as unknown as EventItem[]),
-    reports: published(reports as unknown as ReportItem[]),
+    organizations: organizations as unknown as Organization[],
+    events: events as unknown as EventItem[],
+    reports: reports as unknown as ReportItem[],
     isMock: false,
   }
 }
