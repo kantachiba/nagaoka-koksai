@@ -24,6 +24,11 @@ export const SITE_DESCRIPTION: LocalizedField = {
   en: 'Events, activity reports and groups working on international exchange in Nagaoka.',
 }
 
+// ------------------------------------------------------------------ Firebase
+
+/** Firestore / Auth / Storage を置いている Firebase プロジェクト */
+export const FIREBASE_PROJECT_ID = 'nagaoka-kokusai-portal'
+
 /** 本番URL。OGP と sitemap の絶対URL生成に使う */
 export const SITE_URL = 'https://nagaoka-kokusai-portal.web.app'
 

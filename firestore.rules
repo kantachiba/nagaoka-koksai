@@ -1,0 +1,69 @@
+rules_version = '2';
+
+// 長岡国際交流ポータルの Firestore セキュリティルール
+//
+// 方針
+//  - 公開済み（status == 'published'）のコンテンツは誰でも読める。
+//    ビルド時に REST API で取得するため、認証なしの読み取りを許可している。
+//  - 書き込みは運営メンバー（admins コレクションに登録された UID）だけ。
+//  - 下書きは運営メンバーだけが読める。
+//
+// ⚠️ Cloud Functions を使わない構成のため、バリデーションはここで完結させる。
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 運営メンバーの名簿。ここへの書き込みはコンソールからのみ（クライアント不可）
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isPublished() {
+      return resource.data.status == 'published';
+    }
+
+    // 公開コンテンツ。読みは公開済みのみ、書きは運営のみ
+    match /{collection}/{docId} {
+      allow read: if collection in ['events', 'reports', 'organizations', 'tags']
+        && (isPublished() || isAdmin());
+      allow create, update, delete: if collection in ['events', 'reports', 'organizations', 'tags']
+        && isAdmin();
+    }
+
+    // ------------------------------------------------------------ B群（既定は無効）
+
+    // 意見箱。誰でも送れるが、読めるのは運営だけ（仕様 B-2）
+    match /suggestions/{id} {
+      allow create: if request.resource.data.keys().hasAll(['kind', 'body', 'createdAt'])
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 2000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 参加申請。送信者は作成のみ、閲覧は運営だけ（仕様 B-3）
+    match /applications/{id} {
+      allow create: if request.resource.data.keys().hasAll(['eventId', 'name', 'contact', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // コメント。承認済みだけが公開され、承認は運営だけができる（仕様 B-1）
+    match /comments/{id} {
+      allow read: if resource.data.approved == true || isAdmin();
+      allow create: if request.resource.data.approved == false
+        && request.resource.data.keys().hasAll(['targetType', 'targetId', 'displayName', 'body', 'createdAt'])
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 1000;
+      allow update, delete: if isAdmin();
+    }
+  }
+}
