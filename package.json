@@ -2,7 +2,7 @@
   "name": "nagaoka-kokusai",
   "private": true,
   "version": "0.1.0",
-  "description": "長岡市の国際交流ポータルサイト（フロントエンド先行開発）",
+  "description": "\u9577\u5ca1\u5e02\u306e\u56fd\u969b\u4ea4\u6d41\u30dd\u30fc\u30bf\u30eb\u30b5\u30a4\u30c8\uff08\u30d5\u30ed\u30f3\u30c8\u30a8\u30f3\u30c9\u5148\u884c\u958b\u767a\uff09",
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "test:rules": "firebase emulators:exec --only firestore --project rules-test \"node --test tests/rules.test.mjs\""
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

@@ -1,0 +1,32 @@
+---
+import '../../styles/global.css'
+import JoinApp from '../../admin/JoinApp'
+import { SITE_NAME } from '../../config/site'
+import { resolveText } from '../../i18n/text'
+import { stripRuby } from '../../lib/ruby'
+
+/** 招待コードから編集者を登録する画面。検索対象にはしない。 */
+const siteName = stripRuby(resolveText(SITE_NAME, 'ja').text)
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>編集者の登録｜{siteName}</title>
+  </head>
+  <body class="bg-snow-50">
+    <div class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <header class="mb-8 text-center">
+        <p class="text-xs font-bold tracking-widest text-hanabi-700 uppercase">Invitation</p>
+        <h1 class="mt-1 text-2xl font-bold">{siteName}</h1>
+      </header>
+      <JoinApp client:only="react" />
+      <footer class="mt-12 border-t border-snow-200 pt-6 text-center text-xs text-snow-400">
+        <a href="/" class="hover:text-brand-700 hover:underline">← 公開サイトへ</a>
+      </footer>
+    </div>
+  </body>
+</html>

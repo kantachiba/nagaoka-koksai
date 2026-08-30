@@ -1,0 +1,32 @@
+name: セキュリティルールの検証
+
+# ルールは Cloud Functions を使わない構成における唯一の防御線なので、
+# 変更が入るたびにエミュレータで攻撃シナリオを流す。
+# 30分ごとの定期ビルドには含めない（毎回動かす必要がないため）。
+on:
+  push:
+    paths:
+      - 'firestore.rules'
+      - 'tests/**'
+      - '.github/workflows/rules-test.yml'
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'tests/**'
+  workflow_dispatch:
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm run test:rules

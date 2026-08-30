@@ -1,87 +1,196 @@
 rules_version = '2';
 
-// 長岡国際交流ポータルの Firestore セキュリティルール
+// 長岡国際交流ポータル — Firestore セキュリティルール
 //
-// 方針
-//  - 公開済み（status == 'published'）のコンテンツは誰でも読める。
-//    ビルド時に REST API で取得するため、認証なしの読み取りを許可している。
-//  - 書き込みは運営メンバー（admins コレクションに登録された UID）だけ。
-//  - 下書きは運営メンバーだけが読める。
+// 役割は3段階
+//   運営（admin） … admins/{uid} が存在する。全コンテンツを編集でき、招待を発行できる。
+//                    付与はコンソールからのみ（クライアントからは一切書けない）。
+//   編集者（editor）… editors/{uid} が存在する。招待コード経由で自分で登録する。
+//                    自分の団体の活動報告・イベント・団体情報だけを編集できる。
+//   閲覧者         … 公開済みコンテンツを読めるだけ。
 //
-// ⚠️ Firestore の「ルールはフィルタではない」仕様のため、一覧取得（list）では
-//    個々のドキュメントの status を評価できない。取得側は必ず
-//    where('status','==','published') を付けたクエリを投げること
+// ⚠️ Cloud Functions を使わない構成のため、権限昇格の防止もすべてここで行う。
+//    とくに editors の作成条件は、招待を実際に消費した本人であることを
+//    invites 側と突き合わせて検証している。
+//
+// ⚠️ Firestore の「ルールはフィルタではない」仕様のため、一覧取得では個々の
+//    status を評価できない。取得側は where('status','==','published') を付ける
 //    （src/lib/content.ts の runQuery を参照）。
-//
-// ⚠️ Cloud Functions を使わない構成のため、入力の検証もここで完結させる。
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 運営メンバーの名簿。書き込みはコンソールからのみ（クライアント不可）
-    match /admins/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // メール確認済みであること。招待コードが漏れた場合の被害を抑えるため、
+    // 実際の書き込みには確認済みを要求する（登録自体は確認前でもできる）。
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
     }
 
     function isAdmin() {
-      return request.auth != null
+      return isSignedIn()
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    function isPublished() {
-      return resource.data.status == 'published';
+    function isEditor() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/editors/$(request.auth.uid));
     }
 
-    // タグは分類そのもので秘密がないため、下書きの概念を持たせず常に読める
+    function editorOrg() {
+      return get(/databases/$(database)/documents/editors/$(request.auth.uid)).data.organizationId;
+    }
+
+    function isEditorOf(orgId) {
+      return isEditor() && editorOrg() == orgId;
+    }
+
+    /** その団体のコンテンツを書き換えてよいか */
+    function canWrite(orgId) {
+      return isAdmin() || (isEditorOf(orgId) && isVerified());
+    }
+
+    function invite(code) {
+      return get(/databases/$(database)/documents/invites/$(code)).data;
+    }
+
+    // ------------------------------------------------------------ 権限の名簿
+
+    // 運営の名簿。クライアントからは読み取りすら他人のものはできず、書き込みは不可。
+    match /admins/{uid} {
+      allow get: if isSignedIn() && request.auth.uid == uid;
+      allow list: if false;
+      allow write: if false;
+    }
+
+    // 編集者の名簿。招待を消費した本人だけが自分の1件を作れる。
+    match /editors/{uid} {
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        // 役割は固定。自分で admin を名乗ることはできない
+        && request.resource.data.role == 'editor'
+        && request.resource.data.keys().hasOnly(
+             ['organizationId', 'role', 'inviteCode', 'email', 'createdAt'])
+        && request.resource.data.organizationId is string
+        && request.resource.data.inviteCode is string
+        && request.resource.data.createdAt is timestamp
+        // 実際にその招待を消費した本人であること
+        && invite(request.resource.data.inviteCode).usedBy == request.auth.uid
+        // 所属団体は招待に書かれたものから変えられない
+        && invite(request.resource.data.inviteCode).organizationId
+             == request.resource.data.organizationId;
+
+      // 権限の変更・剥奪は運営のみ
+      allow update, delete: if isAdmin();
+    }
+
+    // 招待。ドキュメントIDそのものが「鍵」なので、ID を知っている場合だけ読める。
+    // 一覧（list）は運営だけ。招待ページで団体名を先に見せたいので get は公開。
+    match /invites/{code} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.organizationId is string
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.usedBy == null;
+      allow delete: if isAdmin();
+
+      allow update: if isAdmin()
+        || (
+          // 招待の消費：未使用・期限内のものに、自分の UID を記録するだけ
+          isSignedIn()
+          && resource.data.usedBy == null
+          && resource.data.expiresAt is timestamp
+          && request.time < resource.data.expiresAt
+          && request.resource.data.usedBy == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['usedBy', 'usedAt'])
+        );
+    }
+
+    // ------------------------------------------------------------ 公開コンテンツ
+
+    // タグはサイト全体の分類なので、団体の編集者には触らせない
     match /tags/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    match /organizations/{id} {
+      allow read: if resource.data.status == 'published' || isAdmin() || isEditorOf(id);
+      allow create, delete: if isAdmin();
+      // 編集者は自分の団体を編集できるが、公開状態と URL（slug）は変えられない
+      allow update: if isAdmin()
+        || (
+          isEditorOf(id) && isVerified()
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.slug == resource.data.slug
+        );
+    }
+
     match /events/{id} {
-      allow read: if isPublished() || isAdmin();
-      allow write: if isAdmin();
+      allow read: if resource.data.status == 'published'
+        || isAdmin()
+        || isEditorOf(resource.data.organizationId);
+      allow create: if canWrite(request.resource.data.organizationId);
+      // 他団体へ付け替えられないようにする
+      allow update: if canWrite(resource.data.organizationId)
+        && request.resource.data.organizationId == resource.data.organizationId;
+      allow delete: if canWrite(resource.data.organizationId);
     }
 
     match /reports/{id} {
-      allow read: if isPublished() || isAdmin();
-      allow write: if isAdmin();
+      allow read: if resource.data.status == 'published'
+        || isAdmin()
+        || isEditorOf(resource.data.organizationId);
+      allow create: if canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId)
+        && request.resource.data.organizationId == resource.data.organizationId;
+      allow delete: if canWrite(resource.data.organizationId);
     }
 
-    match /organizations/{id} {
-      allow read: if isPublished() || isAdmin();
-      allow write: if isAdmin();
+    // 写真は Firestore に持つ（Cloud Storage は Blaze 必須のため）。
+    // どの団体のものか判別できるよう organizationId を必須にしている。
+    //
+    // ⚠️ list を公開すると、base64 の実体を全件ダウンロードされて
+    //    無料枠（1日5万読み取り）を枯渇させられる。ID 指定の get だけ公開し、
+    //    ビルドは記事が参照している ID を指定して取りに行く。
+    match /photos/{id} {
+      allow get: if true;
+      allow list: if isAdmin() || isEditor();
+      allow create: if canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId)
+        && request.resource.data.organizationId == resource.data.organizationId;
+      allow delete: if canWrite(resource.data.organizationId);
     }
 
-    // ------------------------------------------------------------ B群（既定は無効）
+    // ------------------------------------------------------------ B群（未提供）
 
-    // 意見箱。誰でも送れるが、読めるのは運営だけ（仕様 B-2）
+    // ⚠️ 意見箱・参加申請・コメントは機能フラグ（config/site.ts の FEATURES）が
+    //    すべて false で、UI も存在しない。Spark ではレート制限が作れないため、
+    //    UI が無いあいだ書き込み口を開けておくと、書き込み枠（1日2万）を
+    //    一方的に消費させられる。Phase 6 で機能を出すときに、
+    //    下の allow create を検証つきで開くこと。
+
     match /suggestions/{id} {
-      allow create: if request.resource.data.keys().hasAll(['kind', 'body', 'createdAt'])
-        && request.resource.data.body is string
-        && request.resource.data.body.size() > 0
-        && request.resource.data.body.size() <= 2000;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    // 参加申請。送信者は作成のみ、閲覧は運営だけ（仕様 B-3）
     match /applications/{id} {
-      allow create: if request.resource.data.keys().hasAll(['eventId', 'name', 'contact', 'createdAt'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() <= 100;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    // コメント。承認済みだけが公開され、承認は運営だけができる（仕様 B-1）
     match /comments/{id} {
       allow read: if resource.data.approved == true || isAdmin();
-      allow create: if request.resource.data.approved == false
-        && request.resource.data.keys().hasAll(['targetType', 'targetId', 'displayName', 'body', 'createdAt'])
-        && request.resource.data.body is string
-        && request.resource.data.body.size() > 0
-        && request.resource.data.body.size() <= 1000;
-      allow update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
   }
 }

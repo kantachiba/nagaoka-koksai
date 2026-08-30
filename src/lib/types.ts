@@ -169,3 +169,37 @@ export type Photo = {
   fileName?: string
   createdAt: string
 }
+
+/**
+ * 招待。ドキュメントIDがそのまま招待コードになる（ID を知っていることが鍵）。
+ *
+ * 運営が団体を指定して発行し、コードを編集者に private に渡す。
+ * 編集者は /admin/join?code=... から自分でアカウントを作り、
+ * この招待を1回だけ消費して editors に登録される。
+ */
+export type Invite = {
+  /** = 招待コード */
+  id: string
+  organizationId: string
+  /** 発行者のUID */
+  createdBy: string
+  createdAt: string
+  /** これを過ぎると使えない */
+  expiresAt: string
+  /** 使用済みなら消費した人のUID。未使用は null */
+  usedBy: string | null
+  usedAt?: string
+  /** 誰に送ったかの控え（運営向けメモ。認証には使わない） */
+  note?: string
+}
+
+/** 編集者。招待を消費して自分で作られる。所属団体は招待から決まり、後から変えられない */
+export type Editor = {
+  /** = Firebase Auth の UID */
+  id: string
+  organizationId: string
+  role: 'editor'
+  inviteCode: string
+  email?: string
+  createdAt: string
+}

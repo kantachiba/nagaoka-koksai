@@ -77,6 +77,29 @@ async function fetchPublished(collection: string): Promise<Record<string, unknow
  */
 const useFixtures = process.env.CONTENT_FIXTURES === '1'
 
+/**
+ * slug が重複しているものを取り除く。
+ *
+ * 編集者が既存と同じ slug を付けると getStaticPaths が同じパスを二重に生成し、
+ * サイト全体のビルドが落ちる。1団体の入力ミスで全体を止めないよう、
+ * 先に登録されたほうを残して警告する。
+ */
+function dedupeBySlug<T extends { slug: string; id: string }>(items: T[], label: string): T[] {
+  const seen = new Map<string, T>()
+  for (const item of items) {
+    const existing = seen.get(item.slug)
+    if (existing) {
+      console.warn(
+        `[content] ${label} の slug "${item.slug}" が重複しています。` +
+          `${existing.id} を採用し、${item.id} を除外しました。管理画面で修正してください。`,
+      )
+      continue
+    }
+    seen.set(item.slug, item)
+  }
+  return [...seen.values()]
+}
+
 let cached: Promise<ContentBundle> | null = null
 
 export function getContent(): Promise<ContentBundle> {
@@ -107,11 +130,14 @@ async function load(): Promise<ContentBundle> {
 
   return {
     tags: (tags as unknown as Tag[]).sort((a, b) => a.order - b.order),
-    organizations: organizations as unknown as Organization[],
-    events: useFixtures
-      ? [...(events as unknown as EventItem[]), ...DEV_EVENTS]
-      : (events as unknown as EventItem[]),
-    reports: reports as unknown as ReportItem[],
+    organizations: dedupeBySlug(organizations as unknown as Organization[], '団体'),
+    events: dedupeBySlug(
+      useFixtures
+        ? [...(events as unknown as EventItem[]), ...DEV_EVENTS]
+        : (events as unknown as EventItem[]),
+      'イベント',
+    ),
+    reports: dedupeBySlug(reports as unknown as ReportItem[], '活動報告'),
     isMock: false,
   }
 }
