@@ -113,7 +113,7 @@
   "report.others": "More reports",
   "report.empty": "No reports match your filters",
   "orgs.title": "Groups & organizations",
-  "orgs.lead": "Groups and circles working on international exchange in Nagaoka. Search by activity or language.",
+  "orgs.lead": "Groups working on international exchange in Nagaoka.",
   "orgs.filter.field": "Activity",
   "orgs.filter.recruiting": "Recruiting members only",
   "orgs.empty": "No groups match your filters",
@@ -170,5 +170,11 @@
   "event.applyByEmail": "Apply by email",
   "event.reportLink": "Report from this event",
   "calendar.weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
-  "calendar.noEvents": "No events scheduled this month"
+  "calendar.noEvents": "No events scheduled this month",
+  "reports.filter.org": "Group",
+  "reports.filter.tag": "Tag",
+  "org.philosophy": "What they stand for",
+  "org.links": "Links",
+  "org.eventsAndReports": "Events and reports from this group",
+  "org.noReports": "No activity reports yet"
 }

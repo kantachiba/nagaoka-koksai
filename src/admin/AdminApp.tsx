@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import {
   onAuthStateChanged,
   sendEmailVerification,
@@ -75,8 +74,7 @@ function SignIn() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  async function submit(event: FormEvent) {
-    event.preventDefault()
+  async function submit() {
     setBusy(true)
     setError('')
     try {
@@ -90,7 +88,7 @@ function SignIn() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-sm rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-sm rounded-card bg-white p-6 ring-1 ring-snow-200">
       <h2 className="text-lg font-bold">ログイン</h2>
       <p className="mt-1 text-sm text-snow-500">運営メンバーと、招待された団体の編集者が使えます。</p>
 

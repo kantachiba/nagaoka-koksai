@@ -1,0 +1,63 @@
+---
+import { localeStaticPaths, useTranslations, type Locale } from '../../../i18n'
+import { getContent, listableEvents } from '../../../lib/content'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import PageHero from '../../../components/layout/PageHero.astro'
+import Container from '../../../components/ui/Container.astro'
+import Icon from '../../../components/ui/Icon.astro'
+import OrganizationCard from '../../../components/OrganizationCard.astro'
+import Ruby from '../../../components/Ruby.astro'
+
+export function getStaticPaths() {
+  return localeStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
+const t = useTranslations(locale)
+
+const bundle = await getContent()
+const events = listableEvents(bundle)
+
+/** 団体ごとのイベント・活動報告の件数（カードに出す） */
+const countsOf = (organizationId: string) => ({
+  events: events.filter((event) => event.organizationId === organizationId).length,
+  reports: bundle.reports.filter((report) => report.organizationId === organizationId).length,
+})
+---
+
+<BaseLayout locale={locale} path="/organizations" title={t('orgs.title')}>
+  <PageHero
+    locale={locale}
+    title={t('orgs.title')}
+    lead={t('orgs.lead')}
+    crumbs={[{ label: t('nav.home'), path: '/' }, { label: t('orgs.title') }]}
+  />
+
+  <Container class="pt-8 pb-16">
+    {
+      bundle.organizations.length === 0 ? (
+        <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
+          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+            <Icon name="building" class="size-6" />
+          </div>
+          <p class="font-bold text-snow-800"><Ruby text={t('orgs.empty')} /></p>
+        </div>
+      ) : (
+        <div
+          class:list={[
+            'grid gap-6 sm:grid-cols-2',
+            bundle.organizations.length > 2 && 'lg:grid-cols-3',
+          ]}
+        >
+          {bundle.organizations.map((organization) => (
+            <OrganizationCard
+              organization={organization}
+              locale={locale}
+              counts={countsOf(organization.id)}
+            />
+          ))}
+        </div>
+      )
+    }
+  </Container>
+</BaseLayout>

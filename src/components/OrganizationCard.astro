@@ -1,0 +1,63 @@
+---
+import { localizePath, useTranslations, type Locale } from '../i18n'
+import type { Organization } from '../lib/types'
+import Badge from './ui/Badge.astro'
+import Icon from './ui/Icon.astro'
+import LocalizedTextView from './LocalizedText.astro'
+import PhotoImage from './PhotoImage.astro'
+import Ruby from './Ruby.astro'
+
+interface Props {
+  organization: Organization
+  locale: Locale
+  /** その団体のイベント数・活動報告数 */
+  counts: { events: number; reports: number }
+}
+
+const { organization, locale, counts } = Astro.props
+const t = useTranslations(locale)
+---
+
+<article class="group min-w-0">
+  <a
+    href={localizePath(`/organizations/${organization.slug}`, locale)}
+    class="flex h-full flex-col overflow-hidden rounded-card bg-white ring-1 ring-snow-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5 hover:ring-brand-200"
+  >
+    <div class="relative h-28 overflow-hidden bg-brand-900">
+      <PhotoImage photoId={organization.imageId} seed={organization.slug} class="transition-transform duration-500 group-hover:scale-105" />
+      <div class="absolute inset-0 bg-linear-to-t from-snow-900/80 to-transparent"></div>
+      <h3 class="text-balance-ja absolute inset-x-0 bottom-0 line-clamp-2 p-4 leading-snug font-bold text-white">
+        <LocalizedTextView field={organization.name} locale={locale} notice={false} />
+      </h3>
+      {
+        organization.recruiting && (
+          <span class="absolute top-3 right-3">
+            <Badge tone="hanabi" variant="solid"><Ruby text={t('org.recruiting')} /></Badge>
+          </span>
+        )
+      }
+    </div>
+
+    <div class="flex flex-1 flex-col p-5">
+      <p class="text-balance-ja line-clamp-2 text-sm font-medium text-brand-700">
+        <LocalizedTextView field={organization.philosophy} locale={locale} notice={false} />
+      </p>
+
+      <dl class="mt-4 flex-1 space-y-1.5 text-xs text-snow-500">
+        <div class="flex items-center gap-1.5">
+          <dt class="sr-only"><Ruby text={t('nav.events')} /></dt>
+          <Icon name="calendar" class="size-3.5" />
+          <dd>{counts.events}</dd>
+          <dt class="sr-only"><Ruby text={t('nav.reports')} /></dt>
+          <Icon name="camera" class="ml-2 size-3.5" />
+          <dd>{counts.reports}</dd>
+        </div>
+      </dl>
+
+      <span class="mt-4 inline-flex items-center gap-1 border-t border-snow-200 pt-3 text-sm font-bold text-brand-700">
+        <Ruby text={t('common.readMore')} />
+        <Icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-0.5" />
+      </span>
+    </div>
+  </a>
+</article>

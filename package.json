@@ -7,11 +7,12 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/fetch-photos.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro",
-    "test:rules": "firebase emulators:exec --only firestore --project rules-test \"node --test tests/rules.test.mjs\""
+    "test:rules": "firebase emulators:exec --only firestore --project rules-test \"node --test tests/rules.test.mjs\"",
+    "prebuild:photos": "node scripts/fetch-photos.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",

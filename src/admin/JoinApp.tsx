@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
@@ -122,8 +121,7 @@ function SignUpForm({
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  async function submit(event: FormEvent) {
-    event.preventDefault()
+  async function submit() {
     if (password.length < 8) return setError('パスワードは8文字以上にしてください。')
     setBusy(true)
     setError('')
@@ -145,7 +143,7 @@ function SignUpForm({
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-md rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-md rounded-card bg-white p-6 ring-1 ring-snow-200">
       <h2 className="text-lg font-bold">編集者として登録</h2>
       <p className="mt-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-900">
         <span className="font-bold">{step.organizationName}</span> の編集者として登録します。

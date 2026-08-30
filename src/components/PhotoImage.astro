@@ -1,0 +1,39 @@
+---
+import PlaceholderImage from './ui/PlaceholderImage.astro'
+
+/**
+ * 写真を表示する。
+ *
+ * 写真の実体は scripts/fetch-photos.mjs がビルド前に public/photos/ へ
+ * 書き出しているので、ここでは普通の <img> として参照するだけでよい。
+ * 未設定・書き出し失敗のときはプレースホルダーに落ちる。
+ */
+interface Props {
+  photoId?: string
+  /** プレースホルダーの配色を決める種 */
+  seed: string
+  alt?: string
+  class?: string
+  /** 最初の1枚だけ eager にして体感速度を上げる */
+  eager?: boolean
+}
+
+const { photoId, seed, alt = '', class: className = '', eager = false } = Astro.props
+
+// 書き出し時の拡張子は元の形式によるが、圧縮は JPEG に統一している
+const src = photoId ? `/photos/${photoId}.jpg` : undefined
+---
+
+{
+  src ? (
+    <img
+      src={src}
+      alt={alt}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      class:list={['h-full w-full object-cover', className]}
+    />
+  ) : (
+    <PlaceholderImage seed={seed} alt={alt || undefined} class={className} />
+  )
+}

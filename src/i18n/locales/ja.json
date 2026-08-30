@@ -113,7 +113,7 @@
   "report.others": "ほかの活動報告",
   "report.empty": "該当する活動報告はありません",
   "orgs.title": "団体情報",
-  "orgs.lead": "長岡市内で国際交流に取り組む団体・サークルの一覧です。活動分野や対応言語から探せます。",
+  "orgs.lead": "長岡市内で国際交流に取り組む団体の一覧です。",
   "orgs.filter.field": "活動分野",
   "orgs.filter.recruiting": "メンバー募集中のみ",
   "orgs.empty": "該当する団体はありません",
@@ -170,5 +170,11 @@
   "event.applyByEmail": "メールで申し込む",
   "event.reportLink": "このイベントの活動報告",
   "calendar.weekdays": "日,月,火,水,木,金,土",
-  "calendar.noEvents": "この月に予定されているイベントはありません"
+  "calendar.noEvents": "この月に予定されているイベントはありません",
+  "reports.filter.org": "団体",
+  "reports.filter.tag": "タグ",
+  "org.philosophy": "理念",
+  "org.links": "リンク",
+  "org.eventsAndReports": "この団体のイベントと活動報告",
+  "org.noReports": "まだ活動報告はありません"
 }

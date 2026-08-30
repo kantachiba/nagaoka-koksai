@@ -1,0 +1,147 @@
+---
+import { localeStaticPaths, useTranslations, type Locale } from '../../../i18n'
+import { resolveText } from '../../../i18n/text'
+import { stripRuby } from '../../../lib/ruby'
+import { FILTER_VISIBLE_THRESHOLD } from '../../../config/site'
+import { findOrganization, getContent } from '../../../lib/content'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import PageHero from '../../../components/layout/PageHero.astro'
+import Container from '../../../components/ui/Container.astro'
+import Icon from '../../../components/ui/Icon.astro'
+import ReportCard from '../../../components/ReportCard.astro'
+import Ruby from '../../../components/Ruby.astro'
+
+export function getStaticPaths() {
+  return localeStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
+const t = useTranslations(locale)
+
+const bundle = await getContent()
+// 新しい順
+const reports = [...bundle.reports].sort((a, b) => b.heldOn.localeCompare(a.heldOn))
+
+const showFilters = reports.length > FILTER_VISIBLE_THRESHOLD
+const usedOrgIds = [...new Set(reports.map((report) => report.organizationId))]
+const usedTagIds = new Set(reports.flatMap((report) => report.tagIds))
+const filterTags = bundle.tags.filter((tag) => usedTagIds.has(tag.id))
+const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].sort().reverse()
+---
+
+<BaseLayout locale={locale} path="/reports" title={t('reports.title')}>
+  <PageHero
+    locale={locale}
+    title={t('reports.title')}
+    lead={t('reports.lead')}
+    crumbs={[{ label: t('nav.home'), path: '/' }, { label: t('reports.title') }]}
+  />
+
+  <Container class="pt-8 pb-16">
+    {
+      reports.length === 0 ? (
+        <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
+          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+            <Icon name="camera" class="size-6" />
+          </div>
+          <p class="font-bold text-snow-800"><Ruby text={t('report.empty')} /></p>
+        </div>
+      ) : (
+        <>
+          <div class="mb-5 flex items-center justify-between">
+            <p class="text-sm text-snow-500">
+              <span class="text-base font-bold text-snow-800 tabular-nums" data-result-count>{reports.length}</span>
+              <Ruby text={t('common.count')} />
+            </p>
+          </div>
+
+          {showFilters && (
+            <section aria-label={t('common.filter')} class="mb-8 rounded-card bg-white p-5 ring-1 ring-snow-200">
+              <div class="grid gap-4 sm:grid-cols-3">
+                <div class="min-w-0">
+                  <label for="f-org" class="mb-1.5 block text-xs font-bold text-snow-600">
+                    <Ruby text={t('reports.filter.org')} />
+                  </label>
+                  <select id="f-org" data-filter="org" class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    <option value="all">{stripRuby(t('common.all'))}</option>
+                    {usedOrgIds.map((id) => {
+                      const org = findOrganization(bundle, id)
+                      return <option value={id}>{org ? stripRuby(resolveText(org.shortName, locale).text) : id}</option>
+                    })}
+                  </select>
+                </div>
+                <div class="min-w-0">
+                  <label for="f-tag" class="mb-1.5 block text-xs font-bold text-snow-600">
+                    <Ruby text={t('reports.filter.tag')} />
+                  </label>
+                  <select id="f-tag" data-filter="tag" class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    <option value="all">{stripRuby(t('common.all'))}</option>
+                    {filterTags.map((tag) => (
+                      <option value={tag.id}>{stripRuby(resolveText(tag.name, locale).text)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div class="min-w-0">
+                  <label for="f-year" class="mb-1.5 block text-xs font-bold text-snow-600">
+                    <Ruby text={t('reports.filter.year')} />
+                  </label>
+                  <select id="f-year" data-filter="year" class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    <option value="all">{stripRuby(t('common.all'))}</option>
+                    {years.map((year) => <option value={year}>{year}</option>)}
+                  </select>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {reports.map((report) => (
+              <ReportCard
+                report={report}
+                locale={locale}
+                tags={bundle.tags}
+                organization={findOrganization(bundle, report.organizationId)}
+              />
+            ))}
+          </div>
+
+          <div data-empty hidden class="mt-8 rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
+            <p class="font-bold text-snow-800"><Ruby text={t('common.noResults')} /></p>
+            <p class="mt-2 text-sm text-snow-500"><Ruby text={t('common.noResultsHint')} /></p>
+          </div>
+        </>
+      )
+    }
+  </Container>
+</BaseLayout>
+
+<script>
+  // 絞り込み（静的サイトなのでブラウザ側で行う）
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-report]'))
+  const controls = Array.from(document.querySelectorAll<HTMLSelectElement>('[data-filter]'))
+  const countEl = document.querySelector<HTMLElement>('[data-result-count]')
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')
+
+  const valueOf = (name: string) =>
+    controls.find((control) => control.dataset.filter === name)?.value ?? 'all'
+
+  function apply() {
+    const org = valueOf('org')
+    const tag = valueOf('tag')
+    const year = valueOf('year')
+
+    let shown = 0
+    for (const card of cards) {
+      const ok =
+        (org === 'all' || card.dataset.org === org) &&
+        (tag === 'all' || (card.dataset.tags ?? '').split(' ').includes(tag)) &&
+        (year === 'all' || card.dataset.year === year)
+      card.toggleAttribute('hidden', !ok)
+      if (ok) shown++
+    }
+    if (countEl) countEl.textContent = String(shown)
+    emptyEl?.toggleAttribute('hidden', shown > 0)
+  }
+
+  controls.forEach((control) => control.addEventListener('change', apply))
+</script>

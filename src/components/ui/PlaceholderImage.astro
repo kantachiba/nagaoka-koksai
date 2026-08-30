@@ -1,0 +1,122 @@
+---
+/**
+ * 写真が無いときに描く代替のビジュアル。
+ *
+ * 外部画像に依存せず、seed（slug など）から決定的にSVGを組み立てる。
+ * 運営が配色を選ぶ必要はなく、同じ記事なら常に同じ絵になる。
+ */
+interface Props {
+  /** 配色とモチーフを決める種。slug や id を渡す */
+  seed: string
+  class?: string
+  alt?: string
+}
+
+const { seed, class: className = '', alt } = Astro.props
+
+/** 文字列から安定した整数を作る（djb2） */
+function hash(value: string): number {
+  let h = 5381
+  for (let i = 0; i < value.length; i++) h = ((h << 5) + h + value.charCodeAt(i)) >>> 0
+  return h
+}
+
+const PALETTES: Array<[string, string, string]> = [
+  ['#111b33', '#2b4d97', '#5b84cc'], // 信濃川の夜
+  ['#0f3a4d', '#1f7f96', '#5fbccb'], // 川面
+  ['#5c1c0c', '#dd4708', '#ffa971'], // 長岡花火
+  ['#2f2359', '#6b4fb8', '#a996e0'], // 宵闇
+  ['#11402f', '#2b8a63', '#7fc9a5'], // 棚田
+  ['#4d1c36', '#a34468', '#e29ab0'], // 紅梅
+]
+
+const seedValue = hash(seed)
+const [dark, mid, light] = PALETTES[seedValue % PALETTES.length]
+const motif = Math.floor(seedValue / 6) % 4
+const gradientId = `ph-${seedValue.toString(36)}`
+
+/** 花火：中心から放射する光跡 */
+const burst = Array.from({ length: 16 }, (_, i) => {
+  const angle = (i / 16) * Math.PI * 2
+  const outer = i % 2 === 0 ? 96 : 68
+  return {
+    x1: 280 + Math.cos(angle) * 22,
+    y1: 78 + Math.sin(angle) * 22,
+    x2: 280 + Math.cos(angle) * outer,
+    y2: 78 + Math.sin(angle) * outer,
+    width: i % 2 === 0 ? 2 : 1.2,
+  }
+})
+
+/** 雪：決定的に散らした粒 */
+const flakes = Array.from({ length: 34 }, (_, i) => ({
+  cx: ((i * 137.5) % 400) + ((i % 3) - 1) * 6,
+  cy: ((i * 71.3) % 225) + ((i % 5) - 2) * 4,
+  r: 1.4 + ((i * 7) % 5) * 0.8,
+  opacity: 0.15 + ((i * 3) % 5) * 0.06,
+}))
+---
+
+<svg
+  viewBox="0 0 400 225"
+  preserveAspectRatio="xMidYMid slice"
+  class:list={['block h-full w-full', className]}
+  role={alt ? 'img' : 'presentation'}
+  aria-label={alt}
+  aria-hidden={alt ? undefined : 'true'}
+>
+  <defs>
+    <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color={dark}></stop>
+      <stop offset="55%" stop-color={mid}></stop>
+      <stop offset="100%" stop-color={light}></stop>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="225" fill={`url(#${gradientId})`}></rect>
+
+  {
+    motif === 0 && (
+      <g stroke={light} stroke-linecap="round" fill="none">
+        {burst.map((line) => (
+          <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke-width={line.width} opacity="0.45" />
+        ))}
+        <circle cx="280" cy="78" r="8" fill={light} opacity="0.55" stroke="none" />
+      </g>
+    )
+  }
+
+  {
+    motif === 1 && (
+      <g fill="none" stroke={light} stroke-width="1.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <path
+            d={`M -20 ${130 + i * 22} C 90 ${100 + i * 22}, 180 ${170 + i * 22}, 430 ${118 + i * 22}`}
+            opacity={0.14 + i * 0.06}
+            stroke-width={1 + i * 0.5}
+          />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    motif === 2 && (
+      <g>
+        {[120, 196, 272].map((cx) => (
+          <circle cx={cx} cy="112" r="72" fill={light} opacity="0.14" stroke={light} stroke-width="1" />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    motif === 3 && (
+      <g fill={light}>
+        {flakes.map((flake) => (
+          <circle cx={flake.cx} cy={flake.cy} r={flake.r} opacity={flake.opacity} />
+        ))}
+        <path d="M -20 200 C 120 172, 250 214, 430 178 L 430 245 L -20 245 Z" opacity="0.14" />
+      </g>
+    )
+  }
+</svg>

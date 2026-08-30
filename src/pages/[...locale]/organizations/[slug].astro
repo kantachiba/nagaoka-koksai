@@ -1,0 +1,223 @@
+---
+import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i18n'
+import { resolveText } from '../../../i18n/text'
+import { stripRuby } from '../../../lib/ruby'
+import { getContent, listableEvents } from '../../../lib/content'
+import { upcoming } from '../../../lib/event-helpers'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import Container from '../../../components/ui/Container.astro'
+import Badge from '../../../components/ui/Badge.astro'
+import Icon from '../../../components/ui/Icon.astro'
+import EventCard from '../../../components/EventCard.astro'
+import ReportCard from '../../../components/ReportCard.astro'
+import LocalizedTextView from '../../../components/LocalizedText.astro'
+import PhotoImage from '../../../components/PhotoImage.astro'
+import Ruby from '../../../components/Ruby.astro'
+
+export async function getStaticPaths() {
+  const bundle = await getContent()
+  return LOCALES.flatMap((locale) =>
+    bundle.organizations.map((organization) => ({
+      params: { locale: locale === 'ja' ? undefined : locale, slug: organization.slug },
+      props: { locale, organizationId: organization.id },
+    })),
+  )
+}
+
+const { locale, organizationId } = Astro.props as { locale: Locale; organizationId: string }
+const t = useTranslations(locale)
+
+const bundle = await getContent()
+const organization = bundle.organizations.find((candidate) => candidate.id === organizationId)!
+
+// その団体のイベント・活動報告を自動で並べる（仕様 A-4）
+const orgEvents = upcoming(
+  listableEvents(bundle).filter((event) => event.organizationId === organizationId),
+)
+const orgReports = bundle.reports
+  .filter((report) => report.organizationId === organizationId)
+  .sort((a, b) => b.heldOn.localeCompare(a.heldOn))
+
+const name = resolveText(organization.name, locale).text
+const philosophy = resolveText(organization.philosophy, locale).text
+---
+
+<BaseLayout
+  locale={locale}
+  path={`/organizations/${organization.slug}`}
+  title={name}
+  description={stripRuby(philosophy)}
+  ogImage={organization.imageId ? new URL(`/photos/${organization.imageId}.jpg`, Astro.site).href : undefined}
+>
+  <Container>
+    <nav aria-label={t('common.breadcrumb')} class="py-4">
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-snow-500">
+        <li><a href={localizePath('/', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.home')} /></a></li>
+        <li aria-hidden="true" class="text-snow-300">／</li>
+        <li><a href={localizePath('/organizations', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.organizations')} /></a></li>
+        <li aria-hidden="true" class="text-snow-300">／</li>
+        <li class="font-medium text-snow-700" aria-current="page"><Ruby text={name} /></li>
+      </ol>
+    </nav>
+  </Container>
+
+  <Container class="pb-8">
+    <div class="relative overflow-hidden rounded-card bg-brand-900">
+      <div class="absolute inset-0">
+        <PhotoImage photoId={organization.imageId} seed={organization.slug} />
+        <div class="absolute inset-0 bg-linear-to-r from-brand-950/90 via-brand-950/70 to-brand-950/30"></div>
+      </div>
+      <div class="relative px-6 py-10 sm:px-10 sm:py-14">
+        {organization.recruiting && (
+          <Badge tone="hanabi" variant="solid" size="md">
+            <Icon name="sparkles" class="size-3.5" />
+            <Ruby text={t('org.recruiting')} />
+          </Badge>
+        )}
+        <h1 class="text-balance-ja mt-4 text-3xl leading-snug text-white sm:text-4xl">
+          <LocalizedTextView field={organization.name} locale={locale} />
+        </h1>
+        <p class="text-balance-ja mt-3 max-w-2xl text-lg text-brand-100">
+          <LocalizedTextView field={organization.philosophy} locale={locale} notice={false} />
+        </p>
+      </div>
+    </div>
+  </Container>
+
+  <Container class="pb-16">
+    <div class="grid gap-10 lg:grid-cols-[1fr_20rem]">
+      <div class="min-w-0">
+        <section>
+          <h2 class="flex items-center gap-2 text-xl">
+            <Icon name="info" class="size-5 text-hanabi-600" />
+            <Ruby text={t('org.about')} />
+          </h2>
+          <div class="mt-5 space-y-5">
+            {organization.description.map((paragraph) => (
+              <p class="text-balance-ja leading-loose text-snow-700">
+                <LocalizedTextView field={paragraph} locale={locale} />
+              </p>
+            ))}
+          </div>
+        </section>
+
+        {
+          organization.activities.length > 0 && (
+            <section class="mt-12">
+              <h2 class="flex items-center gap-2 text-xl">
+                <Icon name="check" class="size-5 text-hanabi-600" />
+                <Ruby text={t('org.activities')} />
+              </h2>
+              <ul class="mt-5 space-y-3">
+                {organization.activities.map((activity, index) => (
+                  <li class="flex items-start gap-3 rounded-card bg-white p-4 ring-1 ring-snow-200">
+                    <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800">
+                      {index + 1}
+                    </span>
+                    <span class="text-balance-ja min-w-0">
+                      <LocalizedTextView field={activity} locale={locale} notice={false} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        <section class="mt-12">
+          <h2 class="flex items-center gap-2 text-xl">
+            <Icon name="calendar" class="size-5 text-hanabi-600" />
+            <Ruby text={t('org.upcomingEvents')} />
+          </h2>
+          <div class="mt-5">
+            {
+              orgEvents.length > 0 ? (
+                <div class="grid gap-6 sm:grid-cols-2">
+                  {orgEvents.map((event) => (
+                    <EventCard event={event} locale={locale} tags={bundle.tags} organization={organization} />
+                  ))}
+                </div>
+              ) : (
+                <p class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-10 text-center text-sm text-snow-500">
+                  <Ruby text={t('org.noEvents')} />
+                </p>
+              )
+            }
+          </div>
+        </section>
+
+        <section class="mt-12">
+          <h2 class="flex items-center gap-2 text-xl">
+            <Icon name="camera" class="size-5 text-hanabi-600" />
+            <Ruby text={t('org.reports')} />
+          </h2>
+          <div class="mt-5">
+            {
+              orgReports.length > 0 ? (
+                <div class="grid gap-6 sm:grid-cols-2">
+                  {orgReports.map((report) => (
+                    <ReportCard report={report} locale={locale} tags={bundle.tags} organization={organization} />
+                  ))}
+                </div>
+              ) : (
+                <p class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-10 text-center text-sm text-snow-500">
+                  <Ruby text={t('org.noReports')} />
+                </p>
+              )
+            }
+          </div>
+        </section>
+      </div>
+
+      <aside class="lg:sticky lg:top-24 lg:self-start">
+        <div class="rounded-card bg-white p-6 ring-1 ring-snow-200">
+          <h2 class="text-sm font-bold text-snow-700"><Ruby text={t('org.contact')} /></h2>
+
+          {
+            organization.email && (
+              <p class="mt-3 flex items-start gap-2 text-sm">
+                <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-brand-500" />
+                <a href={`mailto:${organization.email}`} class="min-w-0 break-all text-snow-700 underline-offset-2 hover:text-brand-700 hover:underline">
+                  {organization.email}
+                </a>
+              </p>
+            )
+          }
+
+          {
+            organization.links.length > 0 && (
+              <div class="mt-4 border-t border-snow-200 pt-4">
+                <p class="text-xs font-bold text-snow-600"><Ruby text={t('org.links')} /></p>
+                <ul class="mt-2 space-y-1.5">
+                  {organization.links.map((link) => (
+                    <li>
+                      <a href={link.url} target="_blank" rel="noreferrer"
+                        class="flex items-start gap-2 text-sm text-brand-700 underline-offset-2 hover:underline">
+                        <Icon name="external" class="mt-0.5 size-3.5 shrink-0" />
+                        <span class="min-w-0 break-all">{link.label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+
+          {
+            organization.sourceUrl && (
+              <p class="mt-4 flex items-start gap-2 border-t border-snow-200 pt-4 text-xs leading-relaxed text-snow-500">
+                <Icon name="info" class="mt-0.5 size-3.5 shrink-0" />
+                <span class="min-w-0">
+                  <Ruby text={t('common.source')} />：
+                  <a href={organization.sourceUrl} target="_blank" rel="noreferrer" class="break-all text-brand-700 underline-offset-2 hover:underline">
+                    {organization.sourceLabel ? stripRuby(resolveText(organization.sourceLabel, locale).text) : organization.sourceUrl}
+                  </a>
+                </span>
+              </p>
+            )
+          }
+        </div>
+      </aside>
+    </div>
+  </Container>
+</BaseLayout>
