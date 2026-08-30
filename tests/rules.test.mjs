@@ -209,3 +209,16 @@ test('未提供機能の書き込み口は閉じている', async () => {
     targetType: 'event', targetId: 'e', displayName: 'n', body: 'x', approved: false, createdAt: new Date(),
   }))
 })
+
+test('編集者は一覧を取れるが、書けるのは自団体だけ（トレードオフの確認）', async () => {
+  const db = verified(EDITOR)
+  // 管理画面で担当分を並べるために一覧は許可している
+  await assertSucceeds(getDocs(collection(db, 'reports')))
+  // ただし他団体への書き込みは引き続き不可
+  await assertFails(updateDoc(doc(db, 'reports', 'rep-b'), { slug: 'x' }))
+})
+
+test('未認証・非編集者は一覧を取れない', async () => {
+  await assertFails(getDocs(collection(anon(), 'reports')))
+  await assertFails(getDocs(collection(verified(OUTSIDER), 'reports')))
+})

@@ -10,6 +10,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import { seedInitialData, type SeedResult } from './seed'
 import InvitePanel from './InvitePanel'
+import ReportEditor from './ReportEditor'
 
 /**
  * 管理画面。運営メンバーと、招待を受けた団体の編集者が使う。
@@ -139,7 +140,7 @@ function SignedIn({ user, role }: { user: User; role: Role }) {
       {role.kind !== 'admin' && !user.emailVerified && <VerifyEmail user={user} />}
       {role.kind === 'none' && <NoRole user={user} />}
       {role.kind === 'admin' && <AdminSections uid={user.uid} />}
-      {role.kind === 'editor' && <EditorSections organizationName={role.organizationName} />}
+      {role.kind === 'editor' && <EditorSections organizationId={role.organizationId} />}
     </div>
   )
 }
@@ -186,6 +187,7 @@ function NoRole({ user }: { user: User }) {
 function AdminSections({ uid }: { uid: string }) {
   return (
     <>
+      <ReportEditor scope={{ kind: 'admin' }} />
       <InvitePanel uid={uid} />
       <SeedSection />
       <ComingSoon />
@@ -193,15 +195,17 @@ function AdminSections({ uid }: { uid: string }) {
   )
 }
 
-function EditorSections({ organizationName }: { organizationName: string }) {
+function EditorSections({ organizationId }: { organizationId: string }) {
   return (
-    <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
-      <h2 className="text-lg font-bold text-snow-700">{organizationName} の活動報告・イベント</h2>
-      <p className="mt-2 text-sm leading-relaxed text-snow-500">
-        編集画面はこの先のフェーズで実装します。3言語を横並びで入力でき、
-        ふりがなはその場でプレビューできるようにする予定です。
-      </p>
-    </section>
+    <>
+      <ReportEditor scope={{ kind: 'editor', organizationId }} />
+      <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
+        <h2 className="text-lg font-bold text-snow-700">イベント・団体情報の編集</h2>
+        <p className="mt-2 text-sm text-snow-500">
+          この先のフェーズで実装します。まずは活動報告からお使いください。
+        </p>
+      </section>
+    </>
   )
 }
 
@@ -249,11 +253,8 @@ function SeedSection() {
 function ComingSoon() {
   return (
     <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
-      <h2 className="text-lg font-bold text-snow-700">イベント・団体・活動報告の編集</h2>
-      <p className="mt-2 text-sm text-snow-500">
-        この先のフェーズで実装します。3言語を横並びで入力でき、ふりがなはその場で
-        プレビューできる編集画面にする予定です。
-      </p>
+      <h2 className="text-lg font-bold text-snow-700">イベント・団体情報の編集</h2>
+      <p className="mt-2 text-sm text-snow-500">この先のフェーズで実装します。</p>
     </section>
   )
 }

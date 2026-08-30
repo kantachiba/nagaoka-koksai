@@ -123,7 +123,8 @@ service cloud.firestore {
     }
 
     match /organizations/{id} {
-      allow read: if resource.data.status == 'published' || isAdmin() || isEditorOf(id);
+      allow get: if resource.data.status == 'published' || isAdmin() || isEditorOf(id);
+      allow list: if isAdmin() || isEditor();
       allow create, delete: if isAdmin();
       // 編集者は自分の団体を編集できるが、公開状態と URL（slug）は変えられない
       allow update: if isAdmin()
@@ -135,9 +136,16 @@ service cloud.firestore {
     }
 
     match /events/{id} {
-      allow read: if resource.data.status == 'published'
+      allow get: if resource.data.status == 'published'
         || isAdmin()
         || isEditorOf(resource.data.organizationId);
+
+      // ⚠️ 一覧取得（list）では個々の organizationId を条件にできない
+      //    （Firestore の「ルールはフィルタではない」制約）。管理画面が
+      //    自分の担当分を並べられるよう、招待済みの編集者には一覧を許可する。
+      //    そのため「他団体の下書きが編集者から見える」ことは許容している。
+      //    書き込みは引き続き自分の団体のものだけ。
+      allow list: if isAdmin() || isEditor();
       allow create: if canWrite(request.resource.data.organizationId);
       // 他団体へ付け替えられないようにする
       allow update: if canWrite(resource.data.organizationId)
@@ -146,9 +154,16 @@ service cloud.firestore {
     }
 
     match /reports/{id} {
-      allow read: if resource.data.status == 'published'
+      allow get: if resource.data.status == 'published'
         || isAdmin()
         || isEditorOf(resource.data.organizationId);
+
+      // ⚠️ 一覧取得（list）では個々の organizationId を条件にできない
+      //    （Firestore の「ルールはフィルタではない」制約）。管理画面が
+      //    自分の担当分を並べられるよう、招待済みの編集者には一覧を許可する。
+      //    そのため「他団体の下書きが編集者から見える」ことは許容している。
+      //    書き込みは引き続き自分の団体のものだけ。
+      allow list: if isAdmin() || isEditor();
       allow create: if canWrite(request.resource.data.organizationId);
       allow update: if canWrite(resource.data.organizationId)
         && request.resource.data.organizationId == resource.data.organizationId;
