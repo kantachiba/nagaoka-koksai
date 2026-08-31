@@ -11,6 +11,7 @@ import { auth, db } from './firebase'
 import { seedInitialData, type SeedResult } from './seed'
 import InvitePanel from './InvitePanel'
 import ReportEditor from './ReportEditor'
+import OrganizationEditor from './OrganizationEditor'
 
 /**
  * 管理画面。運営メンバーと、招待を受けた団体の編集者が使う。
@@ -187,7 +188,9 @@ function NoRole({ user }: { user: User }) {
 function AdminSections({ uid }: { uid: string }) {
   return (
     <>
+      <PublishNote />
       <ReportEditor scope={{ kind: 'admin' }} />
+      <OrganizationEditor scope={{ kind: 'admin' }} />
       <InvitePanel uid={uid} />
       <SeedSection />
       <ComingSoon />
@@ -198,14 +201,44 @@ function AdminSections({ uid }: { uid: string }) {
 function EditorSections({ organizationId }: { organizationId: string }) {
   return (
     <>
+      <PublishNote />
       <ReportEditor scope={{ kind: 'editor', organizationId }} />
+      <OrganizationEditor scope={{ kind: 'editor', organizationId }} />
       <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
-        <h2 className="text-lg font-bold text-snow-700">イベント・団体情報の編集</h2>
-        <p className="mt-2 text-sm text-snow-500">
-          この先のフェーズで実装します。まずは活動報告からお使いください。
-        </p>
+        <h2 className="text-lg font-bold text-snow-700">イベントの編集</h2>
+        <p className="mt-2 text-sm text-snow-500">この先のフェーズで実装します。</p>
       </section>
     </>
+  )
+}
+
+/**
+ * 公開までの流れの案内。
+ * 「保存したのにサイトに出ない」と迷いやすいので、下書きと公開の違いと
+ * 反映までの時間をここで明示しておく。
+ */
+function PublishNote() {
+  return (
+    <section className="rounded-card bg-brand-50 p-5 ring-1 ring-brand-100">
+      <h2 className="text-sm font-bold text-brand-900">サイトに出るまでの流れ</h2>
+      <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-relaxed text-snow-700">
+        <li>内容を書いて保存します（このとき「下書き」だとサイトには出ません）</li>
+        <li>公開状態を「公開する」にして保存します</li>
+        <li>最大30分ほどでサイトに反映されます</li>
+      </ol>
+      <p className="mt-3 text-xs text-snow-600">
+        すぐ反映したいときは{' '}
+        <a
+          href="https://github.com/kantachiba/nagaoka-koksai/actions/workflows/deploy.yml"
+          target="_blank"
+          rel="noreferrer"
+          className="font-bold text-brand-700 underline underline-offset-2"
+        >
+          こちらのページ
+        </a>{' '}
+        で「Run workflow」を押すと、数分で反映されます（GitHub アカウントが必要です）。
+      </p>
+    </section>
   )
 }
 
@@ -253,7 +286,7 @@ function SeedSection() {
 function ComingSoon() {
   return (
     <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
-      <h2 className="text-lg font-bold text-snow-700">イベント・団体情報の編集</h2>
+      <h2 className="text-lg font-bold text-snow-700">イベントの編集</h2>
       <p className="mt-2 text-sm text-snow-500">この先のフェーズで実装します。</p>
     </section>
   )

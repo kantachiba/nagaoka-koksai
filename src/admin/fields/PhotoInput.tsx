@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
-import { db } from '../firebase'
+import { uploadPhoto } from '../photo-upload'
 import LocalizedInput from './LocalizedInput'
 import type { LocalizedField } from '../../i18n/text'
+
+/** 活動報告のギャラリーに並べる写真1枚ぶん */
+export type PhotoEntry = { photoId: string; caption: LocalizedField }
 
 /**
  * 写真の追加。
@@ -11,32 +13,6 @@ import type { LocalizedField } from '../../i18n/text'
  * base64 で Firestore に保存する。ビルド時に静的画像として書き出される
  * （scripts/fetch-photos.mjs）ので、閲覧者は普通の画像として受け取る。
  */
-
-/** Firestore の 1ドキュメント上限は 1MiB。base64 は約1.33倍になるので余裕を持たせる */
-const MAX_BASE64_BYTES = 700_000
-const MAX_EDGE = 1600
-
-export type PhotoEntry = { photoId: string; caption: LocalizedField }
-
-/** 長辺を MAX_EDGE に収め、容量に収まるまで品質を落として JPEG にする */
-async function compress(file: File): Promise<{ base64: string; width: number; height: number }> {
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
-  const width = Math.round(bitmap.width * scale)
-  const height = Math.round(bitmap.height * scale)
-
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height)
-
-  for (const quality of [0.82, 0.7, 0.6, 0.5, 0.4]) {
-    const dataUrl = canvas.toDataURL('image/jpeg', quality)
-    const base64 = dataUrl.split(',')[1] ?? ''
-    if (base64.length <= MAX_BASE64_BYTES) return { base64, width, height }
-  }
-  throw new Error('画像を十分に小さくできませんでした。別の写真をお試しください。')
-}
 
 interface Props {
   organizationId: string
@@ -58,18 +34,9 @@ export default function PhotoInput({ organizationId, photos, onChange }: Props) 
       const newPreviews: Record<string, string> = {}
 
       for (const file of Array.from(files)) {
-        const { base64, width, height } = await compress(file)
-        const reference = await addDoc(collection(db(), 'photos'), {
-          organizationId,
-          data: base64,
-          mimeType: 'image/jpeg',
-          width,
-          height,
-          fileName: file.name,
-          createdAt: serverTimestamp(),
-        })
-        added.push({ photoId: reference.id, caption: { ja: '', en: '' } })
-        newPreviews[reference.id] = `data:image/jpeg;base64,${base64}`
+        const uploaded = await uploadPhoto(file, organizationId)
+        added.push({ photoId: uploaded.photoId, caption: { ja: '', en: '' } })
+        newPreviews[uploaded.photoId] = uploaded.dataUrl
       }
 
       setPreviews((current) => ({ ...current, ...newPreviews }))

@@ -4,8 +4,7 @@ import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
-import { db } from './firebase'
+import { uploadPhoto } from './photo-upload'
 import type { RichDoc } from '../lib/blocks'
 
 /**
@@ -30,27 +29,6 @@ const PhotoImage = Image.extend({
     }
   },
 })
-
-const MAX_BASE64_BYTES = 700_000
-const MAX_EDGE = 1600
-
-async function compress(file: File): Promise<{ base64: string; width: number; height: number }> {
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
-  const width = Math.round(bitmap.width * scale)
-  const height = Math.round(bitmap.height * scale)
-
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height)
-
-  for (const quality of [0.82, 0.7, 0.6, 0.5, 0.4]) {
-    const base64 = canvas.toDataURL('image/jpeg', quality).split(',')[1] ?? ''
-    if (base64.length <= MAX_BASE64_BYTES) return { base64, width, height }
-  }
-  throw new Error('画像を十分に小さくできませんでした。')
-}
 
 interface Props {
   /** 表示中の言語（切り替えると内容を入れ替える） */
@@ -101,24 +79,15 @@ export default function BlockEditor({ localeKey, doc, organizationId, onChange }
     setUploading(true)
     setError('')
     try {
-      const { base64, width, height } = await compress(file)
-      const reference = await addDoc(collection(db(), 'photos'), {
-        organizationId,
-        data: base64,
-        mimeType: 'image/jpeg',
-        width,
-        height,
-        fileName: file.name,
-        createdAt: serverTimestamp(),
-      })
+      const uploaded = await uploadPhoto(file, organizationId)
       editor
         .chain()
         .focus()
         .setImage({
           // 保存直後はまだ書き出されていないので、その場のプレビューは data URL
-          src: `data:image/jpeg;base64,${base64}`,
+          src: uploaded.dataUrl,
           // @ts-expect-error 拡張した属性
-          photoId: reference.id,
+          photoId: uploaded.photoId,
         })
         .run()
     } catch (e) {
