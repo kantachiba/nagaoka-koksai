@@ -1,4 +1,5 @@
 import type { ContentBundle } from './types'
+import { paragraphsToLocalizedDoc } from './blocks'
 
 /**
  * Firestore が使えないときの表示用データ。初期投入データの原本も兼ねる。
@@ -143,7 +144,7 @@ export const MOCK_CONTENT: ContentBundle = {
         furigana: '{長岡市|ながおかし}と JICA {長岡|ながおか}デスクが{立|た}ち{上|あ}げた{交流|こうりゅう}の{会|かい}。{第|だい}1{回|かい}はミライエ{長岡|ながおか}で、ごはんのおともの{試食会|ししょくかい}を{行|おこな}いました。',
         en: 'A new gathering launched by Nagaoka City and the JICA Nagaoka Desk. The first meeting, at Miraie Nagaoka, was a tasting of toppings for rice.',
       },
-      body: [
+      body: paragraphsToLocalizedDoc([
         {
           ja: '長岡市は、高度な技能をもつ外国人材が地域で孤立しやすいという課題についてJICA長岡デスクに相談し、長岡市とともに「ワールドランプ会」を立ち上げました。会の名前は、戊辰戦争のあとに長岡の復興を担った人々の集まり「ランプ会」へのオマージュです。',
           furigana: '{長岡市|ながおかし}は、{高度|こうど}な{技能|ぎのう}をもつ{外国人材|がいこくじんざい}が{地域|ちいき}で{孤立|こりつ}しやすいという{課題|かだい}について JICA {長岡|ながおか}デスクに{相談|そうだん}し、ともに「ワールドランプ{会|かい}」を{立|た}ち{上|あ}げました。',
@@ -159,7 +160,7 @@ export const MOCK_CONTENT: ContentBundle = {
           furigana: '{参加|さんか}したのは、{働|はたら}いている{外国|がいこく}の{人|ひと}9{名|めい}、ベトナムの{留学生|りゅうがくせい}6{名|めい}、{日本人|にほんじん}8{名|めい}です。インド7{名|めい}、バングラデシュ1{名|めい}、ベトナム7{名|めい}でした。',
           en: 'Participants included nine foreign professionals working under the engineer/specialist visa, six Vietnamese short-term exchange students from Nagaoka University of Technology, and eight Japanese participants. By nationality: seven from India, one from Bangladesh and seven from Vietnam.',
         },
-      ],
+      ]),
       sourceUrl: 'https://www.jica.go.jp/domestic/tokyo/information/topics/2025/1572126_67054.html',
       sourceLabel: { ja: 'JICA東京 トピックス（2025年7月24日）', furigana: 'JICA{東京|とうきょう} トピックス（2025{年|ねん}7{月|がつ}24{日|にち}）', en: 'JICA Tokyo topics (24 July 2025)' },
     },

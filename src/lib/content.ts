@@ -1,5 +1,7 @@
 import { FIREBASE_PROJECT_ID } from '../config/site'
 import { decodeDocuments, type FirestoreDocument } from './firestore-rest'
+import { legacyParagraphsToDoc, type LocalizedDoc, type RichDoc } from './blocks'
+import { LOCALES } from '../i18n'
 import { MOCK_CONTENT } from './mock-content'
 import { DEV_EVENTS } from './dev-fixtures'
 import type { ContentBundle, EventItem, Organization, ReportItem, Tag } from './types'
@@ -78,6 +80,31 @@ async function fetchPublished(collection: string): Promise<Record<string, unknow
 const useFixtures = process.env.CONTENT_FIXTURES === '1'
 
 /**
+ * 本文を新形式（ブロック）に揃える。
+ *
+ * ブロックエディタ導入前の記事は「段落ごとの多言語テキストの配列」で
+ * 保存されている。データを壊さずに済むよう、取得時にここで読み替える。
+ * 管理画面で保存し直すと新形式で上書きされる。
+ */
+function normalizeBody(raw: unknown): LocalizedDoc {
+  if (Array.isArray(raw)) {
+    const paragraphs = raw as Array<Record<string, string>>
+    return Object.fromEntries(
+      LOCALES.map((locale) => [locale, legacyParagraphsToDoc(paragraphs, locale)]),
+    )
+  }
+  if (raw && typeof raw === 'object') {
+    const source = raw as Record<string, unknown>
+    return Object.fromEntries(
+      LOCALES.filter((locale) => source[locale] && typeof source[locale] === 'object').map(
+        (locale) => [locale, source[locale] as RichDoc],
+      ),
+    )
+  }
+  return {}
+}
+
+/**
  * slug が重複しているものを取り除く。
  *
  * 編集者が既存と同じ slug を付けると getStaticPaths が同じパスを二重に生成し、
@@ -123,7 +150,15 @@ async function load(): Promise<ContentBundle> {
     )
     return {
       ...MOCK_CONTENT,
-      events: useFixtures ? DEV_EVENTS : MOCK_CONTENT.events,
+      organizations: MOCK_CONTENT.organizations,
+      events: (useFixtures ? DEV_EVENTS : MOCK_CONTENT.events).map((event) => ({
+        ...event,
+        body: normalizeBody(event.body),
+      })),
+      reports: MOCK_CONTENT.reports.map((report) => ({
+        ...report,
+        body: normalizeBody(report.body),
+      })),
       isMock: true,
     }
   }
@@ -132,12 +167,19 @@ async function load(): Promise<ContentBundle> {
     tags: (tags as unknown as Tag[]).sort((a, b) => a.order - b.order),
     organizations: dedupeBySlug(organizations as unknown as Organization[], '団体'),
     events: dedupeBySlug(
-      useFixtures
+      (useFixtures
         ? [...(events as unknown as EventItem[]), ...DEV_EVENTS]
-        : (events as unknown as EventItem[]),
+        : (events as unknown as EventItem[])
+      ).map((event) => ({ ...event, body: normalizeBody(event.body) })),
       'イベント',
     ),
-    reports: dedupeBySlug(reports as unknown as ReportItem[], '活動報告'),
+    reports: dedupeBySlug(
+      (reports as unknown as ReportItem[]).map((report) => ({
+        ...report,
+        body: normalizeBody(report.body),
+      })),
+      '活動報告',
+    ),
     isMock: false,
   }
 }

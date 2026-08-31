@@ -51,3 +51,36 @@ export async function generateFurigana(japanese: string): Promise<string> {
   const plain = text.replace(/\{([^{}|]+)\|[^{}|]+\}/g, '$1')
   return tokensToRuby(tokenizer.tokenize(plain))
 }
+
+/**
+ * 本文（ブロック）全体にふりがなを振る。
+ *
+ * 構造はそのままに、テキストノードだけを置き換える。
+ * 見出し・リスト・引用の中身にも同じように振られる。
+ */
+export async function generateFuriganaDoc<T>(doc: T): Promise<T> {
+  const walk = async (node: unknown): Promise<unknown> => {
+    if (Array.isArray(node)) return Promise.all(node.map(walk))
+    if (!node || typeof node !== 'object') return node
+
+    const record = node as Record<string, unknown>
+    const next: Record<string, unknown> = { ...record }
+
+    if (record.type === 'text' && typeof record.text === 'string') {
+      next.text = await generateFurigana(record.text)
+    }
+    if (Array.isArray(record.content)) {
+      next.content = await walk(record.content)
+    }
+    // 画像のキャプションにも振る
+    if (record.attrs && typeof record.attrs === 'object') {
+      const attrs = record.attrs as Record<string, unknown>
+      if (typeof attrs.caption === 'string' && attrs.caption.trim()) {
+        next.attrs = { ...attrs, caption: await generateFurigana(attrs.caption) }
+      }
+    }
+    return next
+  }
+
+  return (await walk(doc)) as T
+}

@@ -1,0 +1,126 @@
+---
+import type { Locale } from '../i18n'
+import type { RichNode } from '../lib/blocks'
+import Ruby from './Ruby.astro'
+import PhotoImage from './PhotoImage.astro'
+import Self from './BlockContent.astro'
+
+/**
+ * 本文の描画。エディタが出した JSON を静的HTMLにする。
+ *
+ * 自分自身を読み込んで入れ子を処理する。閲覧者側に JS は一切要らない。
+ * 未知のノードは中身だけ描いて素通しするので、将来ノードが増えても壊れない。
+ */
+interface Props {
+  nodes: RichNode[] | undefined
+  locale: Locale
+  /** プレースホルダー画像の種 */
+  seed: string
+}
+
+const { nodes, locale, seed } = Astro.props
+
+/** 見出しは h2/h3 に寄せる（ページ側に h1 があるため） */
+const headingTag = (level: unknown): 'h2' | 'h3' | 'h4' => {
+  const n = typeof level === 'number' ? level : 2
+  return n <= 2 ? 'h2' : n === 3 ? 'h3' : 'h4'
+}
+
+const href = (node: RichNode): string | undefined =>
+  node.marks?.find((mark) => mark.type === 'link')?.attrs?.href
+
+const hasMark = (node: RichNode, type: string): boolean =>
+  !!node.marks?.some((mark) => mark.type === type)
+---
+
+{
+  (nodes ?? []).map((node) => {
+    if (node.type === 'text') {
+      const link = href(node)
+      const inner = <Ruby text={node.text ?? ''} />
+      const styled = hasMark(node, 'bold') ? <strong>{inner}</strong> : inner
+      const emphasised = hasMark(node, 'italic') ? <em>{styled}</em> : styled
+      return link ? (
+        <a
+          href={link}
+          target={link.startsWith('http') ? '_blank' : undefined}
+          rel={link.startsWith('http') ? 'noreferrer' : undefined}
+          class="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+        >
+          {emphasised}
+        </a>
+      ) : (
+        emphasised
+      )
+    }
+
+    if (node.type === 'hardBreak') return <br />
+
+    if (node.type === 'paragraph') {
+      return (
+        <p class="text-balance-ja leading-loose text-snow-700">
+          <Self nodes={node.content} locale={locale} seed={seed} />
+        </p>
+      )
+    }
+
+    if (node.type === 'heading') {
+      const Tag = headingTag(node.attrs?.level)
+      return (
+        <Tag class="text-balance-ja mt-10 mb-3 scroll-mt-24 font-bold text-snow-900 first:mt-0">
+          <Self nodes={node.content} locale={locale} seed={seed} />
+        </Tag>
+      )
+    }
+
+    if (node.type === 'bulletList' || node.type === 'orderedList') {
+      const Tag = node.type === 'bulletList' ? 'ul' : 'ol'
+      return (
+        <Tag
+          class:list={[
+            'my-4 space-y-1.5 pl-6 text-snow-700',
+            node.type === 'bulletList' ? 'list-disc' : 'list-decimal',
+          ]}
+        >
+          <Self nodes={node.content} locale={locale} seed={seed} />
+        </Tag>
+      )
+    }
+
+    if (node.type === 'listItem') {
+      return (
+        <li class="leading-relaxed">
+          <Self nodes={node.content} locale={locale} seed={seed} />
+        </li>
+      )
+    }
+
+    if (node.type === 'blockquote') {
+      return (
+        <blockquote class="my-6 border-l-4 border-brand-200 bg-brand-50/50 py-2 pl-5 text-snow-700">
+          <Self nodes={node.content} locale={locale} seed={seed} />
+        </blockquote>
+      )
+    }
+
+    if (node.type === 'image') {
+      const photoId = typeof node.attrs?.photoId === 'string' ? node.attrs.photoId : undefined
+      const caption = typeof node.attrs?.caption === 'string' ? node.attrs.caption : ''
+      return (
+        <figure class="my-8">
+          <div class="overflow-hidden rounded-card bg-brand-900">
+            <PhotoImage photoId={photoId} seed={`${seed}-${photoId ?? 'x'}`} alt={caption} />
+          </div>
+          {caption && (
+            <figcaption class="text-balance-ja mt-2 text-sm text-snow-500">
+              <Ruby text={caption} />
+            </figcaption>
+          )}
+        </figure>
+      )
+    }
+
+    // 未知のノードは中身だけ通す
+    return <Self nodes={node.content} locale={locale} seed={seed} />
+  })
+}

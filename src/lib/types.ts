@@ -1,4 +1,5 @@
 import type { LocalizedField } from '../i18n/text'
+import type { LocalizedDoc } from './blocks'
 
 /**
  * 公開コンテンツの型。Firestore のドキュメント構造とそのまま対応する。
@@ -75,7 +76,8 @@ export type EventItem = {
   slug: string
   title: LocalizedField
   summary: LocalizedField
-  body: LocalizedField[]
+  /** 本文（ブロックエディタの内容）。旧形式は取得時に読み替える */
+  body: LocalizedDoc
   organizationId: string
   /** ISO 8601（'2026-06-27T19:00:00+09:00'） */
   startAt: string
@@ -112,7 +114,8 @@ export type ReportItem = {
   slug: string
   title: LocalizedField
   summary: LocalizedField
-  body: LocalizedField[]
+  /** 本文（ブロックエディタの内容）。旧形式は取得時に読み替える */
+  body: LocalizedDoc
   organizationId: string
   /** 実施日 'YYYY-MM-DD' */
   heldOn: string

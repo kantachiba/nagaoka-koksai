@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   collection,
   deleteDoc,
@@ -11,6 +11,9 @@ import { db } from './firebase'
 import LocalizedInput from './fields/LocalizedInput'
 import PhotoInput, { type PhotoEntry } from './fields/PhotoInput'
 import type { LocalizedField } from '../i18n/text'
+import BlockEditor from './BlockEditor'
+import { generateFuriganaDoc } from './furigana-engine'
+import { emptyDoc, prepareBodyForSave, type LocalizedDoc, type RichDoc } from '../lib/blocks'
 
 /**
  * 活動報告の編集。
@@ -30,7 +33,7 @@ type Draft = {
   organizationId: string
   title: LocalizedField
   summary: LocalizedField
-  body: LocalizedField[]
+  body: LocalizedDoc
   heldOn: string
   publishedAt: string
   participants: string
@@ -40,6 +43,29 @@ type Draft = {
 }
 
 const emptyField = (): LocalizedField => ({ ja: '', furigana: '', en: '' })
+
+/** 旧形式（段落の配列）で保存された記事も編集できるように読み替える */
+function normalizeStoredBody(raw: unknown): LocalizedDoc {
+  if (Array.isArray(raw)) {
+    const paragraphs = raw as LocalizedField[]
+    const build = (locale: 'ja' | 'furigana' | 'en'): RichDoc => ({
+      type: 'doc',
+      content: paragraphs
+        .map((paragraph) => paragraph[locale] ?? paragraph.ja ?? '')
+        .filter((text) => text.trim())
+        .map((text) => ({ type: 'paragraph', content: [{ type: 'text', text }] })),
+    })
+    return { ja: build('ja'), furigana: build('furigana'), en: build('en') }
+  }
+  if (raw && typeof raw === 'object') return raw as LocalizedDoc
+  return { ja: emptyDoc() }
+}
+
+const BODY_TABS = [
+  { key: 'ja', label: '日本語' },
+  { key: 'furigana', label: 'ふりがな' },
+  { key: 'en', label: 'English' },
+] as const
 
 const randomSuffix = () => Math.random().toString(36).slice(2, 6)
 
@@ -53,7 +79,7 @@ function newDraft(organizationId: string): Draft {
     organizationId,
     title: emptyField(),
     summary: emptyField(),
-    body: [emptyField()],
+    body: { ja: emptyDoc() },
     heldOn,
     publishedAt: heldOn,
     participants: '',
@@ -71,6 +97,10 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
+  const [bodyTab, setBodyTab] = useState<'ja' | 'furigana' | 'en'>('ja')
+  const [furiganaBusy, setFuriganaBusy] = useState(false)
+  const [savedAt, setSavedAt] = useState('')
+  const autosaveTimer = useRef<number | null>(null)
 
   const defaultOrg = scope.kind === 'editor' ? scope.organizationId : (orgs[0]?.id ?? '')
 
@@ -107,7 +137,7 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
           organizationId: String(data.organizationId ?? ''),
           title: (data.title as LocalizedField) ?? emptyField(),
           summary: (data.summary as LocalizedField) ?? emptyField(),
-          body: (data.body as LocalizedField[]) ?? [emptyField()],
+          body: normalizeStoredBody(data.body),
           heldOn: String(data.heldOn ?? ''),
           publishedAt: String(data.publishedAt ?? ''),
           participants: data.participants === undefined ? '' : String(data.participants),
@@ -138,9 +168,28 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
     return reports.some((report) => report.slug === draft.slug && report.id !== draft.id)
   }, [draft, reports])
 
-  async function save() {
+  /** 日本語の本文からふりがな版をまとめて作る */
+  async function generateBodyFurigana() {
     if (!draft) return
-    if (!draft.title.ja?.trim()) return setError('日本語のタイトルは必須です。')
+    setFuriganaBusy(true)
+    setError('')
+    try {
+      const source = draft.body.ja
+      if (!source) return
+      setDraft({ ...draft, body: { ...draft.body, furigana: await generateFuriganaDoc(source) } })
+    } catch {
+      setError('ふりがなを生成できませんでした。通信状況を確認してください。')
+    } finally {
+      setFuriganaBusy(false)
+    }
+  }
+
+  async function save(options: { silent?: boolean } = {}) {
+    if (!draft) return
+    if (!draft.title.ja?.trim()) {
+      if (options.silent) return
+      return setError('日本語のタイトルは必須です。')
+    }
     if (!/^[a-z0-9-]+$/.test(draft.slug)) return setError('URL は英小文字・数字・ハイフンだけで入力してください。')
     if (slugTaken) return setError('この URL はすでに使われています。別の値にしてください。')
 
@@ -153,7 +202,7 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
         organizationId: draft.organizationId,
         title: draft.title,
         summary: draft.summary,
-        body: draft.body.filter((paragraph) => paragraph.ja?.trim()),
+        body: prepareBodyForSave(draft.body),
         heldOn: draft.heldOn,
         publishedAt: draft.publishedAt,
         ...(draft.participants.trim() ? { participants: Number(draft.participants) } : {}),
@@ -162,6 +211,12 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
         status: draft.status,
         updatedAt: serverTimestamp(),
       })
+      if (options.silent) {
+        // 自動保存では編集を続けられるよう、画面はそのままにする
+        setSavedAt(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }))
+        if (!draft.id) setDraft({ ...draft, id })
+        return
+      }
       setNotice(
         draft.status === 'published'
           ? '保存しました。公開サイトには最大30分ほどで反映されます。'
@@ -175,6 +230,20 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
       setBusy(false)
     }
   }
+
+  /**
+   * オートセーブ。
+   * 下書きのあいだだけ、入力が止まって数秒たったら静かに保存する。
+   * 公開中の記事を勝手に書き換えないよう、status が draft のときに限る。
+   */
+  useEffect(() => {
+    if (!draft || draft.status !== 'draft' || !draft.title.ja?.trim()) return
+    if (autosaveTimer.current) window.clearTimeout(autosaveTimer.current)
+    autosaveTimer.current = window.setTimeout(() => void save({ silent: true }), 3000)
+    return () => {
+      if (autosaveTimer.current) window.clearTimeout(autosaveTimer.current)
+    }
+  }, [draft])
 
   async function remove(id: string) {
     if (!confirm('この活動報告を削除します。よろしいですか？')) return
@@ -217,34 +286,45 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
             hint="一覧やSNSシェアに出る短い紹介です。"
             onChange={(summary) => setDraft({ ...draft, summary })} />
 
+          {/* 本文：言語ごとにブロックエディタを切り替える */}
           <fieldset className="rounded-card border border-snow-200 bg-white p-4">
             <legend className="px-1 text-sm font-bold text-snow-800">本文</legend>
-            <p className="mb-3 text-xs text-snow-500">段落ごとに分けて入力します。</p>
-            <div className="space-y-4">
-              {draft.body.map((paragraph, index) => (
-                <div key={index}>
-                  <LocalizedInput label={`${index + 1}段落目`} value={paragraph} multiline
-                    onChange={(next) =>
-                      setDraft({
-                        ...draft,
-                        body: draft.body.map((p, i) => (i === index ? next : p)),
-                      })
-                    } />
-                  {draft.body.length > 1 && (
-                    <button type="button"
-                      onClick={() => setDraft({ ...draft, body: draft.body.filter((_, i) => i !== index) })}
-                      className="mt-1 rounded px-2 py-1 text-xs font-bold text-rose-700 hover:bg-rose-50">
-                      この段落を削除
-                    </button>
-                  )}
-                </div>
-              ))}
+
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div role="tablist" className="flex items-center gap-0.5 rounded-full bg-snow-100 p-1">
+                {BODY_TABS.map((tab) => (
+                  <button key={tab.key} type="button" role="tab"
+                    aria-selected={bodyTab === tab.key}
+                    onClick={() => setBodyTab(tab.key)}
+                    className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
+                      bodyTab === tab.key ? 'bg-white text-brand-800 shadow-sm' : 'text-snow-500'
+                    }`}>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {bodyTab === 'furigana' && (
+                <button type="button" onClick={() => void generateBodyFurigana()}
+                  disabled={furiganaBusy}
+                  className="rounded-full bg-brand-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-800 disabled:opacity-40">
+                  {furiganaBusy ? '生成中…' : '日本語からふりがなを生成'}
+                </button>
+              )}
             </div>
-            <button type="button"
-              onClick={() => setDraft({ ...draft, body: [...draft.body, emptyField()] })}
-              className="mt-3 rounded-full px-4 py-2 text-xs font-bold text-brand-700 ring-1 ring-brand-200 ring-inset hover:bg-brand-50">
-              段落を追加
-            </button>
+
+            {bodyTab === 'en' && (
+              <p className="mb-2 text-xs text-snow-500">
+                空のままにすると、英語版では日本語の本文が表示されます。
+              </p>
+            )}
+
+            <BlockEditor
+              localeKey={bodyTab}
+              doc={draft.body[bodyTab]}
+              organizationId={draft.organizationId}
+              onChange={(next) => setDraft({ ...draft, body: { ...draft.body, [bodyTab]: next } })}
+            />
           </fieldset>
 
           <PhotoInput organizationId={draft.organizationId} photos={draft.photos}
@@ -324,6 +404,9 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
         {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
 
         <div className="mt-6 flex flex-wrap gap-3">
+          {savedAt && (
+            <span className="self-center text-xs text-snow-500">自動保存しました {savedAt}</span>
+          )}
           <button onClick={() => void save()} disabled={busy}
             className="rounded-full bg-hanabi-600 px-6 py-3 text-sm font-bold text-white hover:bg-hanabi-700 disabled:opacity-50">
             {busy ? '保存中…' : '保存する'}

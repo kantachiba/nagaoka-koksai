@@ -2,6 +2,7 @@
 import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i18n'
 import { resolveText } from '../../../i18n/text'
 import { stripRuby } from '../../../lib/ruby'
+import { resolveDoc } from '../../../lib/blocks'
 import { FEATURES } from '../../../config/site'
 import { findOrganization, getContent, listableEvents } from '../../../lib/content'
 import { dateOf, getEventStatus, timeOf } from '../../../lib/event-helpers'
@@ -16,6 +17,7 @@ import InfoList from '../../../components/ui/InfoList.astro'
 import InfoRow from '../../../components/ui/InfoRow.astro'
 import LocalizedTextView from '../../../components/LocalizedText.astro'
 import Ruby from '../../../components/Ruby.astro'
+import BlockContent from '../../../components/BlockContent.astro'
 
 /**
  * イベント詳細。
@@ -51,6 +53,7 @@ const eventTags = event.tagIds
 
 const startDate = dateOf(event.startAt)
 const endDate = dateOf(event.endAt)
+const { doc: body } = resolveDoc(event.body, locale)
 const title = resolveText(event.title, locale).text
 const summary = resolveText(event.summary, locale).text
 
@@ -106,12 +109,8 @@ const canApply = event.visibility === 'public'
             <Icon name="info" class="size-5 text-hanabi-600" />
             <Ruby text={t('event.overview')} />
           </h2>
-          <div class="mt-5 space-y-5">
-            {event.body.map((paragraph) => (
-              <p class="text-balance-ja leading-loose text-snow-700">
-                <LocalizedTextView field={paragraph} locale={locale} />
-              </p>
-            ))}
+          <div class="mt-5">
+            <BlockContent nodes={body.content} locale={locale} seed={event.slug} />
           </div>
         </section>
 

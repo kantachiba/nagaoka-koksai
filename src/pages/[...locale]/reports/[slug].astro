@@ -2,6 +2,7 @@
 import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i18n'
 import { resolveText } from '../../../i18n/text'
 import { stripRuby } from '../../../lib/ruby'
+import { resolveDoc } from '../../../lib/blocks'
 import { formatDate } from '../../../lib/date'
 import { withUnit } from '../../../lib/units'
 import { findOrganization, getContent } from '../../../lib/content'
@@ -13,6 +14,7 @@ import LocalizedTextView from '../../../components/LocalizedText.astro'
 import PhotoImage from '../../../components/PhotoImage.astro'
 import ReportCard from '../../../components/ReportCard.astro'
 import Ruby from '../../../components/Ruby.astro'
+import BlockContent from '../../../components/BlockContent.astro'
 
 export async function getStaticPaths() {
   const bundle = await getContent()
@@ -36,6 +38,7 @@ const relatedEvent = report.relatedEventId
 const others = bundle.reports.filter((candidate) => candidate.id !== report.id).slice(0, 3)
 
 const reportTags = report.tagIds.map((id) => bundle.tags.find((tag) => tag.id === id)).filter((tag) => !!tag)
+const { doc: body } = resolveDoc(report.body, locale)
 const title = resolveText(report.title, locale).text
 const summary = resolveText(report.summary, locale).text
 const cover = report.photos[0]
@@ -112,12 +115,8 @@ const cover = report.photos[0]
         <LocalizedTextView field={report.summary} locale={locale} />
       </p>
 
-      <div class="mt-8 space-y-6">
-        {report.body.map((paragraph) => (
-          <p class="text-balance-ja leading-loose text-snow-700">
-            <LocalizedTextView field={paragraph} locale={locale} />
-          </p>
-        ))}
+      <div class="mt-8">
+        <BlockContent nodes={body.content} locale={locale} seed={report.slug} />
       </div>
 
       {

@@ -46,6 +46,22 @@ async function fetchPublished(collection) {
   return Array.isArray(rows) ? rows.filter((row) => row.document).map((row) => row.document) : []
 }
 
+/**
+ * 本文（ブロックエディタの JSON）の中から image ノードの写真IDを拾う。
+ * Firestore の REST 形式は型つきの入れ子なので、再帰で潜る。
+ */
+function collectFromBody(value, ids) {
+  if (!value || typeof value !== 'object') return
+
+  const photoId = value.mapValue?.fields?.attrs?.mapValue?.fields?.photoId?.stringValue
+  if (photoId) ids.add(photoId)
+
+  for (const child of Object.values(value)) {
+    if (Array.isArray(child)) child.forEach((item) => collectFromBody(item, ids))
+    else if (child && typeof child === 'object') collectFromBody(child, ids)
+  }
+}
+
 /** 参照されている写真IDを集める */
 function collectIds(documents) {
   const ids = new Set()
@@ -55,10 +71,14 @@ function collectIds(documents) {
     const imageId = fields.imageId?.stringValue
     if (imageId) ids.add(imageId)
 
+    // 活動報告の写真ギャラリー
     for (const entry of fields.photos?.arrayValue?.values ?? []) {
       const photoId = entry.mapValue?.fields?.photoId?.stringValue
       if (photoId) ids.add(photoId)
     }
+
+    // 本文に差し込まれた画像
+    collectFromBody(fields.body, ids)
   }
   return ids
 }

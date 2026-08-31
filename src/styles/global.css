@@ -115,3 +115,40 @@
     overflow: hidden;
   }
 }
+
+/* =========================================================================
+   本文エディタ（管理画面のみ）
+   公開ページの本文は BlockContent.astro が Tailwind のクラスで組み立てるため、
+   ここは編集中の見た目だけを整える。
+   ========================================================================= */
+@layer components {
+  .prose-editor h2 {
+    @apply mt-6 mb-2 text-xl font-bold text-snow-900 first:mt-0;
+  }
+  .prose-editor h3 {
+    @apply mt-5 mb-2 text-lg font-bold text-snow-900 first:mt-0;
+  }
+  .prose-editor p {
+    @apply my-2 leading-loose text-snow-700;
+  }
+  .prose-editor ul {
+    @apply my-3 list-disc space-y-1 pl-6;
+  }
+  .prose-editor ol {
+    @apply my-3 list-decimal space-y-1 pl-6;
+  }
+  .prose-editor blockquote {
+    @apply my-4 border-l-4 border-brand-200 bg-brand-50/50 py-1 pl-4;
+  }
+  .prose-editor img {
+    @apply my-4 max-h-96 rounded-lg;
+  }
+  .prose-editor a {
+    @apply text-brand-700 underline underline-offset-2;
+  }
+  /* 空の段落にヒントを出す */
+  .prose-editor p.is-editor-empty:first-child::before {
+    @apply pointer-events-none float-left h-0 text-snow-400;
+    content: '本文を書いてください';
+  }
+}
