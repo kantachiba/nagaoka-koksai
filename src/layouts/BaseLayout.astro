@@ -49,19 +49,8 @@ const metaDescription = stripRuby(
 
 const absolute = (p: string) => new URL(p, SITE_URL).href
 
-/**
- * ふりがな版は日本語版の重複コンテンツなので canonical を日本語版に向ける。
- * 英語版は独立したページなので自分自身を指す。
- */
-const canonical =
-  meta.htmlLang === 'ja' ? absolute(localizePath(path, DEFAULT_LOCALE)) : absolute(localizePath(path, locale))
-
-/** hreflang は htmlLang ごとに代表を1つだけ選ぶ（LOCALES の並び順で先勝ち） */
-const hreflangLocales = LOCALES.filter(
-  (code, index) =>
-    LOCALES.findIndex((other) => getLocaleMeta(other).htmlLang === getLocaleMeta(code).htmlLang) ===
-    index,
-)
+/** 各言語版は独立したページなので、canonical は自分自身を指す */
+const canonical = absolute(localizePath(path, locale))
 
 const ogImageUrl = ogImage ?? absolute('/og-default.png')
 ---
@@ -81,11 +70,8 @@ const ogImageUrl = ogImage ?? absolute('/og-default.png')
     }
 
     {
-      /*
-        hreflang は言語ごとに1つだけ出す。ふりがな版は日本語版と同じ 'ja' なので、
-        両方出すと検索エンジンには競合として扱われる（canonical も日本語版を指している）。
-      */
-      hreflangLocales.map((code) => (
+      /* 各言語版を相互に知らせる */
+      LOCALES.map((code) => (
         <link
           rel="alternate"
           hreflang={getLocaleMeta(code).htmlLang}

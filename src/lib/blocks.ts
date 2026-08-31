@@ -60,7 +60,7 @@ export function legacyParagraphsToDoc(
   return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] }
 }
 
-/** 本文の素のテキスト。抜粋・OGP・ふりがな生成の入力に使う */
+/** 本文の素のテキスト。抜粋や OGP の説明文に使う */
 export function docToPlainText(doc: RichDoc | undefined): string {
   const walk = (nodes: RichNode[] | undefined): string =>
     (nodes ?? [])
@@ -95,7 +95,7 @@ export function collectPhotoIds(doc: RichDoc | undefined): string[] {
 
 /** 段落テキストの配列から、言語ごとの本文を組み立てる（初期データ・検証用） */
 export function paragraphsToLocalizedDoc(paragraphs: LocalizedField[]): LocalizedDoc {
-  const locales = ['ja', 'furigana', 'en'] as const
+  const locales = ['ja', 'en'] as const
   return Object.fromEntries(
     locales.map((locale) => [locale, legacyParagraphsToDoc(paragraphs, locale)]),
   )
@@ -115,8 +115,7 @@ export function resolveDoc(
   const japanese = body?.ja
   return {
     doc: japanese ?? emptyDoc(),
-    // 日本語表記どうし（ふりがな版）は「未翻訳」ではないので断り書きを出さない
-    isFallback: !!japanese && !isEmptyDoc(japanese) && locale !== 'ja' && locale !== 'furigana',
+    isFallback: !!japanese && !isEmptyDoc(japanese) && locale !== 'ja',
   }
 }
 

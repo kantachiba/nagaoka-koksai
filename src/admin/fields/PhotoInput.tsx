@@ -68,7 +68,7 @@ export default function PhotoInput({ organizationId, photos, onChange }: Props) 
           fileName: file.name,
           createdAt: serverTimestamp(),
         })
-        added.push({ photoId: reference.id, caption: { ja: '', furigana: '', en: '' } })
+        added.push({ photoId: reference.id, caption: { ja: '', en: '' } })
         newPreviews[reference.id] = `data:image/jpeg;base64,${base64}`
       }
 

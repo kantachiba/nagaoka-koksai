@@ -12,7 +12,7 @@ export type LocaleMeta = {
   label: string
   /** 狭い場所で使う短いラベル */
   shortLabel: string
-  /** <html lang> と hreflang に使う値。ふりがな版は日本語なので 'ja' */
+  /** <html lang> と hreflang に使う値 */
   htmlLang: string
   /** 切替UIでの並び順 */
   order: number
@@ -76,7 +76,7 @@ export function useTranslations(locale: Locale) {
 /**
  * 言語つきのパスを作る。日本語はプレフィックスなし。
  *   localizePath('/events', 'ja')       → '/events'
- *   localizePath('/events', 'furigana') → '/furigana/events'
+ *   localizePath('/events', 'en')       → '/en/events'
  */
 export function localizePath(path: string, locale: Locale): string {
   const clean = path.startsWith('/') ? path : `/${path}`

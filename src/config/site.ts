@@ -13,14 +13,11 @@ import type { LocalizedField } from '../i18n/text'
  */
 export const SITE_NAME: LocalizedField = {
   ja: 'ながおか国際交流ポータル（仮）',
-  furigana: 'ながおか{国際交流|こくさいこうりゅう}ポータル（{仮|かり}）',
   en: 'Nagaoka International Portal (working title)',
 }
 
 export const SITE_DESCRIPTION: LocalizedField = {
   ja: '長岡市の国際交流イベント・活動報告・団体情報を集約するポータルサイトです。',
-  furigana:
-    '{長岡市|ながおかし}の{国際交流|こくさいこうりゅう}イベント・{活動報告|かつどうほうこく}・{団体|だんたい}の{情報|じょうほう}をまとめたサイトです。',
   en: 'Events, activity reports and groups working on international exchange in Nagaoka.',
 }
 
@@ -34,19 +31,6 @@ export const SITE_URL = 'https://nagaoka-kokusai-portal.web.app'
 
 /** ロゴ画像を用意したらここにパスを入れる。空ならシンボルマークを描画する */
 export const SITE_LOGO_PATH = ''
-
-// ------------------------------------------------------------------ ふりがな生成
-
-/**
- * ふりがなの自動生成に使う形態素解析辞書の場所（管理画面でのみ読み込む）。
- *
- * ⚠️ 辞書は約17MBある。Firebase Hosting の無料枠は転送 360MB/日で公開サイトと
- *    共有しているため、自己ホストすると管理画面のアクセス次第で公開サイトごと
- *    止まる恐れがある。そのため既定では CDN から読む。
- *    自己ホストに切り替える場合は、辞書を public/kuromoji/ に置いて
- *    '/kuromoji/' に変更する（転送量に注意）。
- */
-export const FURIGANA_DICT_URL = 'https://cdn.jsdelivr.net/npm/@sglkc/kuromoji@1.1.0/dict/'
 
 // ------------------------------------------------------------------ A-5 ハッシュタグ
 

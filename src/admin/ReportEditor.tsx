@@ -12,7 +12,6 @@ import LocalizedInput from './fields/LocalizedInput'
 import PhotoInput, { type PhotoEntry } from './fields/PhotoInput'
 import type { LocalizedField } from '../i18n/text'
 import BlockEditor from './BlockEditor'
-import { generateFuriganaDoc } from './furigana-engine'
 import { emptyDoc, prepareBodyForSave, type LocalizedDoc, type RichDoc } from '../lib/blocks'
 
 /**
@@ -42,20 +41,20 @@ type Draft = {
   status: 'draft' | 'published'
 }
 
-const emptyField = (): LocalizedField => ({ ja: '', furigana: '', en: '' })
+const emptyField = (): LocalizedField => ({ ja: '', en: '' })
 
 /** 旧形式（段落の配列）で保存された記事も編集できるように読み替える */
 function normalizeStoredBody(raw: unknown): LocalizedDoc {
   if (Array.isArray(raw)) {
     const paragraphs = raw as LocalizedField[]
-    const build = (locale: 'ja' | 'furigana' | 'en'): RichDoc => ({
+    const build = (locale: 'ja' | 'en'): RichDoc => ({
       type: 'doc',
       content: paragraphs
         .map((paragraph) => paragraph[locale] ?? paragraph.ja ?? '')
         .filter((text) => text.trim())
         .map((text) => ({ type: 'paragraph', content: [{ type: 'text', text }] })),
     })
-    return { ja: build('ja'), furigana: build('furigana'), en: build('en') }
+    return { ja: build('ja'), en: build('en') }
   }
   if (raw && typeof raw === 'object') return raw as LocalizedDoc
   return { ja: emptyDoc() }
@@ -63,7 +62,6 @@ function normalizeStoredBody(raw: unknown): LocalizedDoc {
 
 const BODY_TABS = [
   { key: 'ja', label: '日本語' },
-  { key: 'furigana', label: 'ふりがな' },
   { key: 'en', label: 'English' },
 ] as const
 
@@ -97,8 +95,7 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
-  const [bodyTab, setBodyTab] = useState<'ja' | 'furigana' | 'en'>('ja')
-  const [furiganaBusy, setFuriganaBusy] = useState(false)
+  const [bodyTab, setBodyTab] = useState<'ja' | 'en'>('ja')
   const [savedAt, setSavedAt] = useState('')
   const autosaveTimer = useRef<number | null>(null)
 
@@ -167,22 +164,6 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
     if (!draft) return false
     return reports.some((report) => report.slug === draft.slug && report.id !== draft.id)
   }, [draft, reports])
-
-  /** 日本語の本文からふりがな版をまとめて作る */
-  async function generateBodyFurigana() {
-    if (!draft) return
-    setFuriganaBusy(true)
-    setError('')
-    try {
-      const source = draft.body.ja
-      if (!source) return
-      setDraft({ ...draft, body: { ...draft.body, furigana: await generateFuriganaDoc(source) } })
-    } catch {
-      setError('ふりがなを生成できませんでした。通信状況を確認してください。')
-    } finally {
-      setFuriganaBusy(false)
-    }
-  }
 
   async function save(options: { silent?: boolean } = {}) {
     if (!draft) return
@@ -304,13 +285,6 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
                 ))}
               </div>
 
-              {bodyTab === 'furigana' && (
-                <button type="button" onClick={() => void generateBodyFurigana()}
-                  disabled={furiganaBusy}
-                  className="rounded-full bg-brand-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-800 disabled:opacity-40">
-                  {furiganaBusy ? '生成中…' : '日本語からふりがなを生成'}
-                </button>
-              )}
             </div>
 
             {bodyTab === 'en' && (

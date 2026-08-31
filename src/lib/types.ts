@@ -4,7 +4,7 @@ import type { LocalizedDoc } from './blocks'
 /**
  * 公開コンテンツの型。Firestore のドキュメント構造とそのまま対応する。
  *
- * 多言語フィールドは { ja, furigana, en } のマップ。日本語以外が空のときは
+ * 多言語フィールドは { ja, en } のマップ。日本語以外が空のときは
  * resolveText が日本語へフォールバックする（src/i18n/text.ts）。
  */
 

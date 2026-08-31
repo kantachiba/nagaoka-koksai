@@ -1,14 +1,8 @@
 import { getLocaleMeta, type Locale } from '../i18n'
 
-/**
- * 日付の整形。
- *
- * ふりがな版では単位の漢字にルビ記法を付けて返す。呼び出し側は
- * <Ruby> を通して描画するので、そのまま <ruby> になる。
- */
+/** 日付の整形 */
 
 const WEEKDAY_JA = ['日', '月', '火', '水', '木', '金', '土']
-const WEEKDAY_JA_YOMI = ['にち', 'げつ', 'か', 'すい', 'もく', 'きん', 'ど']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTH_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -37,7 +31,7 @@ export function daysUntil(iso: string): number {
 
 export const isPast = (iso: string): boolean => daysUntil(iso) < 0
 
-/** その言語が日本語表記かどうか（ja と furigana が該当） */
+/** その言語が日本語表記かどうか */
 const isJapanese = (locale: Locale): boolean => getLocaleMeta(locale).htmlLang === 'ja'
 
 type FormatOptions = {
@@ -47,10 +41,7 @@ type FormatOptions = {
   year?: boolean
 }
 
-/**
- * 日付を表示用に整形する。
- * ふりがな版は「2026{年|ねん}8{月|がつ}15{日|にち}（{土|ど}）」のように返す。
- */
+/** 日付を表示用に整形する */
 export function formatDate(iso: string, locale: Locale, options: FormatOptions = {}): string {
   const { weekday = true, year = true } = options
   const date = parseIso(iso)
@@ -65,13 +56,9 @@ export function formatDate(iso: string, locale: Locale, options: FormatOptions =
     return `${head}${MONTH_EN[m]} ${d}${tail}`
   }
 
-  const ruby = locale !== 'ja'
-  const unit = (kanji: string, yomi: string) => (ruby ? `{${kanji}|${yomi}}` : kanji)
-
-  const head = year ? `${y}${unit('年', 'ねん')}` : ''
-  const body = `${m + 1}${unit('月', 'がつ')}${d}${unit('日', 'にち')}`
-  const tail = weekday ? `（${unit(WEEKDAY_JA[w], WEEKDAY_JA_YOMI[w])}）` : ''
-  return `${head}${body}${tail}`
+  const head = year ? `${y}年` : ''
+  const tail = weekday ? `（${WEEKDAY_JA[w]}）` : ''
+  return `${head}${m + 1}月${d}日${tail}`
 }
 
 /** 開始日〜終了日の範囲表記（終了日がなければ単日表記） */
@@ -89,8 +76,7 @@ export function formatDateRange(startIso: string, endIso: string | undefined, lo
 export function formatMonth(yearMonth: string, locale: Locale): string {
   const [y, m] = yearMonth.split('-').map(Number)
   if (!isJapanese(locale)) return `${MONTH_EN[m - 1]} ${y}`
-  const unit = (kanji: string, yomi: string) => (locale === 'ja' ? kanji : `{${kanji}|${yomi}}`)
-  return `${y}${unit('年', 'ねん')}${m}${unit('月', 'がつ')}`
+  return `${y}年${m}月`
 }
 
 /** カードの日付ブロック用の短い表記（ルビは付けない） */
