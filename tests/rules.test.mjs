@@ -6,7 +6,7 @@ import {
   assertFails,
   assertSucceeds,
 } from '@firebase/rules-unit-testing'
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore'
 
 /**
  * Firestore セキュリティルールの検証。
@@ -221,4 +221,25 @@ test('編集者は一覧を取れるが、書けるのは自団体だけ（ト�
 test('未認証・非編集者は一覧を取れない', async () => {
   await assertFails(getDocs(collection(anon(), 'reports')))
   await assertFails(getDocs(collection(verified(OUTSIDER), 'reports')))
+})
+
+// ---------------------------------------------------------------- ビルドの取得経路
+
+/**
+ * サイトのビルドは未認証で status=='published' のクエリを投げる。
+ * ここが塞がるとサイト全体がモックデータで生成されてしまうため、
+ * 実際の取得経路そのものを検証する。
+ */
+test('未認証でも公開済みだけを絞ったクエリなら一覧を取れる（ビルドの取得経路）', async () => {
+  for (const name of ['reports', 'events', 'organizations']) {
+    await assertSucceeds(
+      getDocs(query(collection(anon(), name), where('status', '==', 'published'))),
+    )
+  }
+})
+
+test('未認証で下書きを絞ったクエリは拒否される', async () => {
+  await assertFails(
+    getDocs(query(collection(anon(), 'reports'), where('status', '==', 'draft'))),
+  )
 })

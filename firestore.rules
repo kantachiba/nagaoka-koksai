@@ -123,8 +123,9 @@ service cloud.firestore {
     }
 
     match /organizations/{id} {
-      allow get: if resource.data.status == 'published' || isAdmin() || isEditorOf(id);
-      allow list: if isAdmin() || isEditor();
+      // read を条件ごとに分ける理由は events / reports と同じ
+      allow read: if resource.data.status == 'published';
+      allow read: if isAdmin() || isEditor();
       allow create, delete: if isAdmin();
       // 編集者は自分の団体を編集できるが、公開状態と URL（slug）は変えられない
       allow update: if isAdmin()
@@ -136,16 +137,18 @@ service cloud.firestore {
     }
 
     match /events/{id} {
-      allow get: if resource.data.status == 'published'
-        || isAdmin()
-        || isEditorOf(resource.data.organizationId);
+      // ⚠️ read は「条件ごとに別の allow 文」に分けること。
+      //    1文に || でまとめると、Firestore がクエリを解析できず一覧が拒否される。
+      //
+      // 公開済みは誰でも読める。一覧取得は where('status','==','published') を
+      // 付けたクエリでのみ通る（サイトのビルドはこの形で取得している）。
+      allow read: if resource.data.status == 'published';
 
-      // ⚠️ 一覧取得（list）では個々の organizationId を条件にできない
-      //    （Firestore の「ルールはフィルタではない」制約）。管理画面が
-      //    自分の担当分を並べられるよう、招待済みの編集者には一覧を許可する。
-      //    そのため「他団体の下書きが編集者から見える」ことは許容している。
-      //    書き込みは引き続き自分の団体のものだけ。
-      allow list: if isAdmin() || isEditor();
+      // 運営と編集者は下書きも含めて読める（管理画面の一覧のため）。
+      // 一覧では個々の organizationId を条件にできない制約があるので、
+      // 「他団体の下書きが編集者から見える」ことは許容している。
+      // 書き込みは引き続き自分の団体のものだけ。
+      allow read: if isAdmin() || isEditor();
       allow create: if canWrite(request.resource.data.organizationId);
       // 他団体へ付け替えられないようにする
       allow update: if canWrite(resource.data.organizationId)
@@ -154,16 +157,18 @@ service cloud.firestore {
     }
 
     match /reports/{id} {
-      allow get: if resource.data.status == 'published'
-        || isAdmin()
-        || isEditorOf(resource.data.organizationId);
+      // ⚠️ read は「条件ごとに別の allow 文」に分けること。
+      //    1文に || でまとめると、Firestore がクエリを解析できず一覧が拒否される。
+      //
+      // 公開済みは誰でも読める。一覧取得は where('status','==','published') を
+      // 付けたクエリでのみ通る（サイトのビルドはこの形で取得している）。
+      allow read: if resource.data.status == 'published';
 
-      // ⚠️ 一覧取得（list）では個々の organizationId を条件にできない
-      //    （Firestore の「ルールはフィルタではない」制約）。管理画面が
-      //    自分の担当分を並べられるよう、招待済みの編集者には一覧を許可する。
-      //    そのため「他団体の下書きが編集者から見える」ことは許容している。
-      //    書き込みは引き続き自分の団体のものだけ。
-      allow list: if isAdmin() || isEditor();
+      // 運営と編集者は下書きも含めて読める（管理画面の一覧のため）。
+      // 一覧では個々の organizationId を条件にできない制約があるので、
+      // 「他団体の下書きが編集者から見える」ことは許容している。
+      // 書き込みは引き続き自分の団体のものだけ。
+      allow read: if isAdmin() || isEditor();
       allow create: if canWrite(request.resource.data.organizationId);
       allow update: if canWrite(resource.data.organizationId)
         && request.resource.data.organizationId == resource.data.organizationId;
