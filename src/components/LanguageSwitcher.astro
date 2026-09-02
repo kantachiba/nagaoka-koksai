@@ -22,9 +22,9 @@ const basePath = stripLocale(Astro.url.pathname.replace(/\/+$/, '') || '/')
 <div
   role="group"
   aria-label={t('lang.switch')}
-  class:list={['flex items-center gap-0.5 rounded-full bg-snow-100 p-1', variant === 'block' && 'w-full']}
+  class:list={['flex items-center gap-1 rounded-card border-2 border-faded-gray p-1', variant === 'block' && 'w-full']}
 >
-  <Icon name="globe" class="ml-1.5 size-4 shrink-0 text-snow-500" />
+  <Icon name="globe" class="ml-1.5 size-4 shrink-0 text-pencil-gray" />
   {
     LOCALES.map((code) => {
       const meta = getLocaleMeta(code)
@@ -36,11 +36,9 @@ const basePath = stripLocale(Astro.url.pathname.replace(/\/+$/, '') || '/')
           hreflang={meta.htmlLang}
           aria-current={isActive ? 'true' : undefined}
           class:list={[
-            'rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap transition-colors',
+            'rounded-card px-3 py-1.5 text-xs font-bold whitespace-nowrap uppercase transition-colors',
             variant === 'block' && 'flex-1 text-center',
-            isActive
-              ? 'bg-white text-brand-800 shadow-sm'
-              : 'text-snow-500 hover:text-snow-800',
+            isActive ? 'bg-eager-green text-night-ink' : 'text-pencil-gray hover:bg-storybook-green',
           ]}
         >
           {meta.shortLabel}

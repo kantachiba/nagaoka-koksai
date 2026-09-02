@@ -40,29 +40,29 @@ const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].s
   <Container class="pt-8 pb-16">
     {
       reports.length === 0 ? (
-        <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
-          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+        <div class="rounded-card border border-dashed border-faded-gray bg-white/60 px-6 py-16 text-center">
+          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-paper-white text-pencil-gray">
             <Icon name="camera" class="size-6" />
           </div>
-          <p class="font-bold text-snow-800"><Ruby text={t('report.empty')} /></p>
+          <p class="font-bold text-charcoal"><Ruby text={t('report.empty')} /></p>
         </div>
       ) : (
         <>
           <div class="mb-5 flex items-center justify-between">
-            <p class="text-sm text-snow-500">
-              <span class="text-base font-bold text-snow-800 tabular-nums" data-result-count>{reports.length}</span>
+            <p class="text-sm text-pencil-gray">
+              <span class="text-base font-bold text-charcoal tabular-nums" data-result-count>{reports.length}</span>
               <Ruby text={t('common.count')} />
             </p>
           </div>
 
           {showFilters && (
-            <section aria-label={t('common.filter')} class="mb-8 rounded-card bg-white p-5 ring-1 ring-snow-200">
+            <section aria-label={t('common.filter')} class="mb-8 rounded-card bg-white p-5 border-2 border-faded-gray">
               <div class="grid gap-4 sm:grid-cols-3">
                 <div class="min-w-0">
-                  <label for="f-org" class="mb-1.5 block text-xs font-bold text-snow-600">
+                  <label for="f-org" class="mb-1.5 block text-xs font-bold text-pencil-gray">
                     <Ruby text={t('reports.filter.org')} />
                   </label>
-                  <select id="f-org" data-filter="org" class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                  <select id="f-org" data-filter="org" class="w-full rounded-card border border-faded-gray bg-white px-3 py-2.5 text-sm font-medium">
                     <option value="all">{stripRuby(t('common.all'))}</option>
                     {usedOrgIds.map((id) => {
                       const org = findOrganization(bundle, id)
@@ -71,10 +71,10 @@ const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].s
                   </select>
                 </div>
                 <div class="min-w-0">
-                  <label for="f-tag" class="mb-1.5 block text-xs font-bold text-snow-600">
+                  <label for="f-tag" class="mb-1.5 block text-xs font-bold text-pencil-gray">
                     <Ruby text={t('reports.filter.tag')} />
                   </label>
-                  <select id="f-tag" data-filter="tag" class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                  <select id="f-tag" data-filter="tag" class="w-full rounded-card border border-faded-gray bg-white px-3 py-2.5 text-sm font-medium">
                     <option value="all">{stripRuby(t('common.all'))}</option>
                     {filterTags.map((tag) => (
                       <option value={tag.id}>{stripRuby(resolveText(tag.name, locale).text)}</option>
@@ -82,10 +82,10 @@ const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].s
                   </select>
                 </div>
                 <div class="min-w-0">
-                  <label for="f-year" class="mb-1.5 block text-xs font-bold text-snow-600">
+                  <label for="f-year" class="mb-1.5 block text-xs font-bold text-pencil-gray">
                     <Ruby text={t('reports.filter.year')} />
                   </label>
-                  <select id="f-year" data-filter="year" class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                  <select id="f-year" data-filter="year" class="w-full rounded-card border border-faded-gray bg-white px-3 py-2.5 text-sm font-medium">
                     <option value="all">{stripRuby(t('common.all'))}</option>
                     {years.map((year) => <option value={year}>{year}</option>)}
                   </select>
@@ -105,9 +105,9 @@ const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].s
             ))}
           </div>
 
-          <div data-empty hidden class="mt-8 rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
-            <p class="font-bold text-snow-800"><Ruby text={t('common.noResults')} /></p>
-            <p class="mt-2 text-sm text-snow-500"><Ruby text={t('common.noResultsHint')} /></p>
+          <div data-empty hidden class="mt-8 rounded-card border border-dashed border-faded-gray bg-white/60 px-6 py-16 text-center">
+            <p class="font-bold text-charcoal"><Ruby text={t('common.noResults')} /></p>
+            <p class="mt-2 text-sm text-pencil-gray"><Ruby text={t('common.noResultsHint')} /></p>
           </div>
         </>
       )

@@ -46,7 +46,7 @@ const multiDay = startDate !== endDate
 >
   <a
     href={localizePath(`/events/${event.slug}`, locale)}
-    class="flex h-full flex-col rounded-card bg-white p-5 ring-1 ring-snow-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5 hover:ring-brand-200"
+    class="flex h-full flex-col rounded-card bg-white p-5 border-2 border-faded-gray transition-colors hover:border-eager-green"
   >
     <div class="flex flex-wrap items-center gap-1.5">
       <Badge tone={status.tone}><Ruby text={t(status.key)} /></Badge>
@@ -58,7 +58,7 @@ const multiDay = startDate !== endDate
       }
     </div>
 
-    <p class="mt-3 flex items-center gap-2 text-sm font-bold text-brand-700">
+    <p class="mt-3 flex items-center gap-2 text-sm font-bold text-blue-text">
       <Icon name="calendar" class="size-4" />
       <time datetime={startDate}>
         <Ruby text={formatDate(startDate, locale)} />
@@ -68,16 +68,16 @@ const multiDay = startDate !== endDate
     </p>
 
     <h3
-      class="text-balance-ja mt-2 line-clamp-2 text-lg leading-snug font-bold transition-colors group-hover:text-brand-700"
+      class="text-balance-ja mt-2 line-clamp-2 text-lg leading-snug font-bold transition-colors group-hover:text-blue-text"
     >
       <LocalizedTextView field={event.title} locale={locale} notice={false} />
     </h3>
 
-    <p class="text-balance-ja mt-2 line-clamp-2 flex-1 text-sm text-snow-600">
+    <p class="text-balance-ja mt-2 line-clamp-2 flex-1 text-sm text-pencil-gray">
       <LocalizedTextView field={event.summary} locale={locale} notice={false} />
     </p>
 
-    <dl class="mt-4 space-y-1.5 border-t border-snow-200 pt-3 text-xs text-snow-500">
+    <dl class="mt-4 space-y-1.5 border-t border-faded-gray pt-3 text-xs text-pencil-gray">
       <div class="flex items-center gap-1.5">
         <dt class="sr-only">{t('event.time')}</dt>
         <Icon name="clock" class="size-3.5" />
@@ -124,7 +124,7 @@ const multiDay = startDate !== endDate
 
     {
       finished && (
-        <p class="mt-3 rounded-lg bg-snow-100 px-3 py-2 text-xs text-snow-500">
+        <p class="mt-3 rounded-card bg-paper-white px-3 py-2 text-xs text-pencil-gray">
           <Ruby text={t('event.status.finished')} />
         </p>
       )

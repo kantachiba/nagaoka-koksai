@@ -57,9 +57,9 @@ export default function PhotoInput({ organizationId, photos, onChange }: Props) 
   }
 
   return (
-    <fieldset className="rounded-card border border-snow-200 bg-white p-4">
-      <legend className="px-1 text-sm font-bold text-snow-800">写真</legend>
-      <p className="mb-3 text-xs leading-relaxed text-snow-500">
+    <fieldset className="rounded-card border border-faded-gray bg-white p-4">
+      <legend className="px-1 text-sm font-bold text-charcoal">写真</legend>
+      <p className="mb-3 text-xs leading-relaxed text-pencil-gray">
         選ぶだけで自動的に縮小・圧縮されます（長辺1600pxまで）。
         1枚目が一覧やSNSシェアの画像になります。
       </p>
@@ -70,11 +70,11 @@ export default function PhotoInput({ organizationId, photos, onChange }: Props) 
         multiple
         disabled={busy}
         onChange={(e) => void add(e.target.files)}
-        className="block w-full text-sm file:mr-3 file:rounded-full file:border-0 file:bg-brand-700 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-brand-800"
+        className="block w-full text-sm file:mr-3 file:rounded-card file:border-0 file:bg-eager-green file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-eager-green"
       />
-      {busy && <p className="mt-2 text-sm text-snow-500">処理中…</p>}
+      {busy && <p className="mt-2 text-sm text-pencil-gray">処理中…</p>}
       {error && (
-        <p role="alert" className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <p role="alert" className="mt-2 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">
           {error}
         </p>
       )}
@@ -82,7 +82,7 @@ export default function PhotoInput({ organizationId, photos, onChange }: Props) 
       {photos.length > 0 && (
         <ul className="mt-4 space-y-4">
           {photos.map((photo, index) => (
-            <li key={photo.photoId} className="rounded-lg bg-snow-50 p-3 ring-1 ring-snow-200">
+            <li key={photo.photoId} className="rounded-card bg-paper-white p-3 border-2 border-faded-gray">
               <div className="flex items-start gap-3">
                 {previews[photo.photoId] ? (
                   <img
@@ -91,26 +91,26 @@ export default function PhotoInput({ organizationId, photos, onChange }: Props) 
                     className="size-20 shrink-0 rounded object-cover"
                   />
                 ) : (
-                  <span className="flex size-20 shrink-0 items-center justify-center rounded bg-snow-200 text-xs text-snow-500">
+                  <span className="flex size-20 shrink-0 items-center justify-center rounded bg-faded-gray text-xs text-pencil-gray">
                     保存済み
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-snow-500">
+                  <p className="text-xs text-pencil-gray">
                     {index === 0 ? '1枚目（一覧・SNSに使われます）' : `${index + 1}枚目`}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" onClick={() => move(index, -1)} disabled={index === 0}
-                      className="rounded-full px-3 py-1 text-xs font-bold text-snow-600 ring-1 ring-snow-300 ring-inset disabled:opacity-40">
+                      className="rounded-card px-3 py-1 text-xs font-bold text-pencil-gray border-2 border-faded-gray disabled:opacity-40">
                       上へ
                     </button>
                     <button type="button" onClick={() => move(index, 1)} disabled={index === photos.length - 1}
-                      className="rounded-full px-3 py-1 text-xs font-bold text-snow-600 ring-1 ring-snow-300 ring-inset disabled:opacity-40">
+                      className="rounded-card px-3 py-1 text-xs font-bold text-pencil-gray border-2 border-faded-gray disabled:opacity-40">
                       下へ
                     </button>
                     <button type="button"
                       onClick={() => onChange(photos.filter((_, i) => i !== index))}
-                      className="rounded-full px-3 py-1 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                      className="rounded-card px-3 py-1 text-xs font-bold text-rose-700 hover:bg-rose-50">
                       外す
                     </button>
                   </div>

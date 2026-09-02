@@ -25,15 +25,15 @@ const currentPath = stripLocale(Astro.url.pathname.replace(/\/+$/, '') || '/')
 const siteName = resolveText(SITE_NAME, locale).text
 ---
 
-<header class="sticky top-0 z-40 border-b border-snow-200 bg-white/90 backdrop-blur-md">
+<header class="sticky top-0 z-40 border-b border-faded-gray bg-white/90">
   <Container>
     <div class="flex h-16 items-center justify-between gap-4 sm:h-18">
       <a
         href={localizePath('/', locale)}
-        class="flex min-w-0 items-center gap-2.5 rounded-lg py-1 transition-opacity hover:opacity-80"
+        class="flex min-w-0 items-center gap-2.5 rounded-card py-1 transition-opacity hover:opacity-80"
       >
         <Logo class="size-9 shrink-0" />
-        <span class="text-balance-ja min-w-0 text-sm font-bold text-brand-900 sm:text-base">
+        <span class="text-balance-ja min-w-0 text-sm font-bold text-charcoal sm:text-base">
           <Ruby text={siteName} />
         </span>
       </a>
@@ -46,12 +46,7 @@ const siteName = resolveText(SITE_NAME, locale).text
               <a
                 href={localizePath(item.path, locale)}
                 aria-current={isActive ? 'page' : undefined}
-                class:list={[
-                  'relative rounded-lg px-4 py-2 text-sm font-bold transition-colors',
-                  isActive
-                    ? 'text-brand-800 after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-hanabi-500'
-                    : 'text-snow-600 hover:bg-snow-100 hover:text-snow-900',
-                ]}
+                class:list={['nav-label', isActive && 'bg-storybook-green']}
               >
                 <Ruby text={t(item.key)} />
               </a>
@@ -73,7 +68,7 @@ const siteName = resolveText(SITE_NAME, locale).text
           aria-label={t('nav.openMenu')}
           data-label-open={t('nav.openMenu')}
           data-label-close={t('nav.closeMenu')}
-          class="inline-flex size-10 items-center justify-center rounded-lg text-snow-700 transition-colors hover:bg-snow-100 lg:hidden"
+          class="inline-flex size-11 items-center justify-center rounded-card border-2 border-faded-gray text-charcoal transition-colors hover:bg-storybook-green lg:hidden"
         >
           <Icon name="menu" class="size-6" id="menu-icon-open" />
           <Icon name="close" class="hidden size-6" id="menu-icon-close" />
@@ -82,7 +77,7 @@ const siteName = resolveText(SITE_NAME, locale).text
     </div>
   </Container>
 
-  <div id="mobile-menu" hidden class="border-t border-snow-200 bg-white lg:hidden">
+  <div id="mobile-menu" hidden class="border-t border-faded-gray bg-white lg:hidden">
     <Container class="py-4">
       <nav aria-label={t('nav.main')} class="flex flex-col gap-1">
         {
@@ -92,10 +87,7 @@ const siteName = resolveText(SITE_NAME, locale).text
               <a
                 href={localizePath(item.path, locale)}
                 aria-current={isActive ? 'page' : undefined}
-                class:list={[
-                  'rounded-lg px-4 py-3 font-bold transition-colors',
-                  isActive ? 'bg-brand-50 text-brand-800' : 'text-snow-700 hover:bg-snow-100',
-                ]}
+                class:list={['nav-label block', isActive && 'bg-storybook-green']}
               >
                 <Ruby text={t(item.key)} />
               </a>
@@ -103,8 +95,8 @@ const siteName = resolveText(SITE_NAME, locale).text
           })
         }
       </nav>
-      <div class="mt-4 border-t border-snow-200 pt-4 sm:hidden">
-        <p class="mb-2 text-xs font-bold text-snow-500"><Ruby text={t('lang.label')} /></p>
+      <div class="mt-4 border-t-2 border-faded-gray pt-4 sm:hidden">
+        <p class="mb-2 text-xs font-bold text-pencil-gray"><Ruby text={t('lang.label')} /></p>
         <LanguageSwitcher locale={locale} variant="block" />
       </div>
     </Container>

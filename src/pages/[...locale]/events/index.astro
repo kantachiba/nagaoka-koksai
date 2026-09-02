@@ -48,29 +48,29 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
   <Container class="pt-8 pb-16">
     {
       upcomingEvents.length === 0 ? (
-        <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
-          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+        <div class="rounded-card border border-dashed border-faded-gray bg-white/60 px-6 py-16 text-center">
+          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-paper-white text-pencil-gray">
             <Icon name="calendar" class="size-6" />
           </div>
-          <p class="font-bold text-snow-800"><Ruby text={t('events.empty')} /></p>
+          <p class="font-bold text-charcoal"><Ruby text={t('events.empty')} /></p>
         </div>
       ) : (
         <>
           {/* 表示切替と絞り込み */}
           <div class="flex flex-wrap items-center justify-between gap-4">
-            <div role="group" aria-label={t('events.view.label')} class="flex items-center gap-0.5 rounded-full bg-snow-100 p-1">
+            <div role="group" aria-label={t('events.view.label')} class="flex items-center gap-0.5 rounded-card bg-paper-white p-1">
               <button type="button" data-view-btn="list" aria-pressed="true"
-                class="rounded-full px-4 py-1.5 text-sm font-bold transition-colors">
+                class="rounded-card px-4 py-1.5 text-sm font-bold transition-colors">
                 <Ruby text={t('events.view.list')} />
               </button>
               <button type="button" data-view-btn="calendar" aria-pressed="false"
-                class="rounded-full px-4 py-1.5 text-sm font-bold transition-colors">
+                class="rounded-card px-4 py-1.5 text-sm font-bold transition-colors">
                 <Ruby text={t('events.view.calendar')} />
               </button>
             </div>
 
-            <p class="text-sm text-snow-500">
-              <span class="text-base font-bold text-snow-800 tabular-nums" data-result-count>
+            <p class="text-sm text-pencil-gray">
+              <span class="text-base font-bold text-charcoal tabular-nums" data-result-count>
                 {upcomingEvents.length}
               </span>
               <Ruby text={t('common.count')} />
@@ -78,14 +78,14 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
           </div>
 
           {showFilters && (
-            <section aria-label={t('common.filter')} class="mt-5 rounded-card bg-white p-5 ring-1 ring-snow-200">
+            <section aria-label={t('common.filter')} class="mt-5 rounded-card bg-white p-5 border-2 border-faded-gray">
               <div class="grid gap-4 sm:grid-cols-3">
                 <div class="min-w-0">
-                  <label for="f-tag" class="mb-1.5 block text-xs font-bold text-snow-600">
+                  <label for="f-tag" class="mb-1.5 block text-xs font-bold text-pencil-gray">
                     <Ruby text={t('events.filter.tag')} />
                   </label>
                   <select id="f-tag" data-filter="tag"
-                    class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    class="w-full rounded-card border border-faded-gray bg-white px-3 py-2.5 text-sm font-medium">
                     <option value="all">{stripRuby(t('common.all'))}</option>
                     {filterTags.map((tag) => (
                       <option value={tag.id}>{stripRuby(resolveText(tag.name, locale).text)}</option>
@@ -94,11 +94,11 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
                 </div>
 
                 <div class="min-w-0">
-                  <label for="f-lang" class="mb-1.5 block text-xs font-bold text-snow-600">
+                  <label for="f-lang" class="mb-1.5 block text-xs font-bold text-pencil-gray">
                     <Ruby text={t('events.filter.language')} />
                   </label>
                   <select id="f-lang" data-filter="lang"
-                    class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    class="w-full rounded-card border border-faded-gray bg-white px-3 py-2.5 text-sm font-medium">
                     <option value="all">{stripRuby(t('common.all'))}</option>
                     {usedLangs.map((code) => (
                       <option value={code}>
@@ -109,11 +109,11 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
                 </div>
 
                 <div class="min-w-0">
-                  <label for="f-period" class="mb-1.5 block text-xs font-bold text-snow-600">
+                  <label for="f-period" class="mb-1.5 block text-xs font-bold text-pencil-gray">
                     <Ruby text={t('events.filter.period')} />
                   </label>
                   <select id="f-period" data-filter="period"
-                    class="w-full rounded-lg border border-snow-300 bg-white px-3 py-2.5 text-sm font-medium">
+                    class="w-full rounded-card border border-faded-gray bg-white px-3 py-2.5 text-sm font-medium">
                     <option value="all">{stripRuby(t('events.period.all'))}</option>
                     <option value="30">{stripRuby(t('events.period.month'))}</option>
                     <option value="90">{stripRuby(t('events.period.three'))}</option>
@@ -121,8 +121,8 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
                 </div>
               </div>
 
-              <label class="mt-4 flex items-center gap-2 text-sm font-medium text-snow-700">
-                <input type="checkbox" data-filter="free" class="size-4 rounded border-snow-300" />
+              <label class="mt-4 flex items-center gap-2 text-sm font-medium text-charcoal">
+                <input type="checkbox" data-filter="free" class="size-4 rounded border-faded-gray" />
                 <Ruby text={t('events.filter.freeOnly')} />
               </label>
             </section>
@@ -141,9 +141,9 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
           </div>
 
           {/* 絞り込みの結果が0件のとき */}
-          <div data-empty hidden class="mt-8 rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
-            <p class="font-bold text-snow-800"><Ruby text={t('common.noResults')} /></p>
-            <p class="mt-2 text-sm text-snow-500"><Ruby text={t('common.noResultsHint')} /></p>
+          <div data-empty hidden class="mt-8 rounded-card border border-dashed border-faded-gray bg-white/60 px-6 py-16 text-center">
+            <p class="font-bold text-charcoal"><Ruby text={t('common.noResults')} /></p>
+            <p class="mt-2 text-sm text-pencil-gray"><Ruby text={t('common.noResultsHint')} /></p>
           </div>
 
           {/* カレンダー表示 */}
@@ -158,12 +158,12 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
 
     {
       pastEvents.length > 0 && (
-        <section class="mt-16 border-t border-snow-200 pt-12">
+        <section class="mt-16 border-t border-faded-gray pt-12">
           <h2 class="text-2xl">
-            <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-snow-300 align-middle" />
+            <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-card bg-faded-gray align-middle" />
             <Ruby text={t('events.archive')} />
           </h2>
-          <p class="text-balance-ja mt-3 text-sm text-snow-600"><Ruby text={t('events.archiveLead')} /></p>
+          <p class="text-balance-ja mt-3 text-sm text-pencil-gray"><Ruby text={t('events.archiveLead')} /></p>
           <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {pastEvents.map((event) => (
               <EventCard
@@ -191,9 +191,9 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
       const on = button.dataset.viewBtn === name
       button.setAttribute('aria-pressed', String(on))
       button.classList.toggle('bg-white', on)
-      button.classList.toggle('text-brand-800', on)
-      button.classList.toggle('shadow-sm', on)
-      button.classList.toggle('text-snow-500', !on)
+      button.classList.toggle('text-blue-text', on)
+      button.classList.toggle('', on)
+      button.classList.toggle('text-pencil-gray', !on)
     })
   }
 

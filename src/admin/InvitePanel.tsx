@@ -69,16 +69,16 @@ export default function InvitePanel({ uid }: { uid: string }) {
   const orgName = (id: string) => orgs.find((org) => org.id === id)?.name ?? id
 
   const statusOf = (invite: Invite): { label: string; className: string } => {
-    if (invite.usedBy) return { label: '使用済み', className: 'bg-snow-100 text-snow-600' }
+    if (invite.usedBy) return { label: '使用済み', className: 'bg-paper-white text-pencil-gray' }
     if (new Date(invite.expiresAt).getTime() < Date.now())
       return { label: '期限切れ', className: 'bg-amber-50 text-amber-800' }
     return { label: '有効', className: 'bg-emerald-50 text-emerald-800' }
   }
 
   return (
-    <section className="rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <section className="rounded-card bg-white p-6 border-2 border-faded-gray">
       <h2 className="text-lg font-bold">編集者を招待する</h2>
-      <p className="mt-2 text-sm leading-relaxed text-snow-600">
+      <p className="mt-2 text-sm leading-relaxed text-pencil-gray">
         団体を選んで招待コードを発行し、その団体の担当者に送ってください。
         受け取った人は自分でアカウントを作り、<strong>その団体の内容だけ</strong>を編集できるようになります。
         コードは1回だけ使えます。
@@ -86,14 +86,14 @@ export default function InvitePanel({ uid }: { uid: string }) {
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <div>
-          <label htmlFor="inv-org" className="mb-1.5 block text-xs font-bold text-snow-600">
+          <label htmlFor="inv-org" className="mb-1.5 block text-xs font-bold text-pencil-gray">
             団体
           </label>
           <select
             id="inv-org"
             value={organizationId}
             onChange={(e) => setOrganizationId(e.target.value)}
-            className="w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm"
+            className="w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm"
           >
             {orgs.map((org) => (
               <option key={org.id} value={org.id}>
@@ -104,14 +104,14 @@ export default function InvitePanel({ uid }: { uid: string }) {
         </div>
 
         <div>
-          <label htmlFor="inv-days" className="mb-1.5 block text-xs font-bold text-snow-600">
+          <label htmlFor="inv-days" className="mb-1.5 block text-xs font-bold text-pencil-gray">
             有効期限
           </label>
           <select
             id="inv-days"
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
-            className="w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm"
+            className="w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm"
           >
             <option value={7}>7日</option>
             <option value={14}>14日</option>
@@ -120,7 +120,7 @@ export default function InvitePanel({ uid }: { uid: string }) {
         </div>
 
         <div>
-          <label htmlFor="inv-note" className="mb-1.5 block text-xs font-bold text-snow-600">
+          <label htmlFor="inv-note" className="mb-1.5 block text-xs font-bold text-pencil-gray">
             メモ（任意）
           </label>
           <input
@@ -128,7 +128,7 @@ export default function InvitePanel({ uid }: { uid: string }) {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="誰に送ったか"
-            className="w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm"
+            className="w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm"
           />
         </div>
       </div>
@@ -136,43 +136,43 @@ export default function InvitePanel({ uid }: { uid: string }) {
       <button
         onClick={issue}
         disabled={busy || !organizationId}
-        className="mt-4 rounded-full bg-hanabi-600 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-hanabi-700 disabled:opacity-50"
+        className="mt-4 rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green disabled:opacity-50"
       >
         {busy ? '発行中…' : '招待コードを発行する'}
       </button>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">
           {error}
         </p>
       )}
 
       {issued && (
-        <div className="mt-5 rounded-card bg-brand-50 p-5 ring-1 ring-brand-100">
-          <p className="text-sm font-bold text-brand-900">
+        <div className="mt-5 rounded-card bg-storybook-green p-5 border-2 border-eager-green">
+          <p className="text-sm font-bold text-charcoal">
             {orgName(issued.organizationId)} の招待を発行しました
           </p>
-          <p className="mt-3 rounded-lg bg-white px-3 py-2.5 font-mono text-base tracking-wider break-all">
+          <p className="mt-3 rounded-card bg-white px-3 py-2.5 font-mono text-base tracking-wider break-all">
             {issued.id}
           </p>
-          <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs break-all text-snow-600">
+          <p className="mt-2 rounded-card bg-white px-3 py-2 text-xs break-all text-pencil-gray">
             {inviteUrl(issued.id, window.location.origin)}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               onClick={() => void copy(inviteUrl(issued.id, window.location.origin))}
-              className="rounded-full bg-brand-700 px-4 py-2 text-xs font-bold text-white hover:bg-brand-800"
+              className="rounded-card bg-eager-green px-4 py-2 text-xs font-bold text-white hover:bg-eager-green"
             >
               {copied ? 'コピーしました' : '招待URLをコピー'}
             </button>
             <button
               onClick={() => void copy(issued.id)}
-              className="rounded-full px-4 py-2 text-xs font-bold text-brand-700 ring-1 ring-brand-200 ring-inset hover:bg-white"
+              className="rounded-card px-4 py-2 text-xs font-bold text-blue-text border-2 border-eager-green hover:bg-white"
             >
               コードだけコピー
             </button>
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-snow-500">
+          <p className="mt-3 text-xs leading-relaxed text-pencil-gray">
             このコードは鍵そのものです。SNSや公開の場ではなく、本人に直接送ってください。
           </p>
         </div>
@@ -180,8 +180,8 @@ export default function InvitePanel({ uid }: { uid: string }) {
 
       {invites.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-sm font-bold text-snow-700">発行済みの招待</h3>
-          <ul className="mt-3 divide-y divide-snow-200">
+          <h3 className="text-sm font-bold text-charcoal">発行済みの招待</h3>
+          <ul className="mt-3 divide-y divide-faded-gray">
             {invites.map((invite) => {
               const status = statusOf(invite)
               return (
@@ -190,8 +190,8 @@ export default function InvitePanel({ uid }: { uid: string }) {
                     {status.label}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-mono text-xs break-all text-snow-700">{invite.id}</span>
-                    <span className="mt-0.5 block text-xs text-snow-500">
+                    <span className="block font-mono text-xs break-all text-charcoal">{invite.id}</span>
+                    <span className="mt-0.5 block text-xs text-pencil-gray">
                       {orgName(invite.organizationId)}
                       {invite.note && ` ・ ${invite.note}`}
                     </span>
@@ -202,7 +202,7 @@ export default function InvitePanel({ uid }: { uid: string }) {
                         await revokeInvite(invite.id)
                         setInvites(await listInvites())
                       }}
-                      className="rounded-full px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50"
+                      className="rounded-card px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50"
                     >
                       取り消す
                     </button>

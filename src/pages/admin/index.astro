@@ -22,20 +22,20 @@ const siteName = stripRuby(resolveText(SITE_NAME, 'ja').text)
     <meta name="robots" content="noindex, nofollow" />
     <title>管理画面｜{siteName}</title>
   </head>
-  <body class="bg-snow-50">
+  <body class="bg-paper-white">
     <div class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <header class="mb-8">
-        <p class="text-xs font-bold tracking-widest text-hanabi-700 uppercase">Admin</p>
+        <p class="text-xs font-bold tracking-widest text-green-text uppercase">Admin</p>
         <h1 class="mt-1 text-2xl font-bold">{siteName} 管理画面</h1>
-        <p class="mt-2 text-sm text-snow-500">
+        <p class="mt-2 text-sm text-pencil-gray">
           ここで登録した内容は、公開サイトに最大30分ほどで反映されます。
         </p>
       </header>
 
       <AdminApp client:only="react" />
 
-      <footer class="mt-12 border-t border-snow-200 pt-6 text-xs text-snow-400">
-        <a href="/" class="hover:text-brand-700 hover:underline">← 公開サイトへ戻る</a>
+      <footer class="mt-12 border-t border-faded-gray pt-6 text-xs text-faded-gray">
+        <a href="/" class="hover:text-blue-text hover:underline">← 公開サイトへ戻る</a>
       </footer>
     </div>
   </body>

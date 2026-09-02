@@ -21,29 +21,28 @@ const t = useTranslations(locale)
 <article class="group min-w-0">
   <a
     href={localizePath(`/organizations/${organization.slug}`, locale)}
-    class="flex h-full flex-col overflow-hidden rounded-card bg-white ring-1 ring-snow-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5 hover:ring-brand-200"
+    class="flex h-full flex-col overflow-hidden rounded-card bg-white border-2 border-faded-gray transition-colors hover:border-eager-green"
   >
-    <div class="relative h-28 overflow-hidden bg-brand-900">
-      <PhotoImage photoId={organization.imageId} seed={organization.slug} class="transition-transform duration-500 group-hover:scale-105" />
-      <div class="absolute inset-0 bg-linear-to-t from-snow-900/80 to-transparent"></div>
-      <h3 class="text-balance-ja absolute inset-x-0 bottom-0 line-clamp-2 p-4 leading-snug font-bold text-white">
-        <LocalizedTextView field={organization.name} locale={locale} notice={false} />
-      </h3>
+    <div class="relative h-32 overflow-hidden border-b-2 border-faded-gray bg-storybook-green">
+      <PhotoImage photoId={organization.imageId} seed={organization.slug} class="transition-colors" />
       {
         organization.recruiting && (
           <span class="absolute top-3 right-3">
-            <Badge tone="hanabi" variant="solid"><Ruby text={t('org.recruiting')} /></Badge>
+            <Badge tone="emerald" variant="solid"><Ruby text={t('org.recruiting')} /></Badge>
           </span>
         )
       }
     </div>
 
     <div class="flex flex-1 flex-col p-5">
-      <p class="text-balance-ja line-clamp-2 text-sm font-medium text-brand-700">
+      <h3 class="text-balance-ja line-clamp-2 text-lg leading-snug font-extrabold text-charcoal">
+        <LocalizedTextView field={organization.name} locale={locale} notice={false} />
+      </h3>
+      <p class="text-balance-ja mt-2 line-clamp-2 text-sm text-pencil-gray">
         <LocalizedTextView field={organization.philosophy} locale={locale} notice={false} />
       </p>
 
-      <dl class="mt-4 flex-1 space-y-1.5 text-xs text-snow-500">
+      <dl class="mt-4 flex-1 space-y-1.5 text-xs text-pencil-gray">
         <div class="flex items-center gap-1.5">
           <dt class="sr-only"><Ruby text={t('nav.events')} /></dt>
           <Icon name="calendar" class="size-3.5" />
@@ -54,7 +53,7 @@ const t = useTranslations(locale)
         </div>
       </dl>
 
-      <span class="mt-4 inline-flex items-center gap-1 border-t border-snow-200 pt-3 text-sm font-bold text-brand-700">
+      <span class="mt-4 inline-flex items-center gap-1 border-t border-faded-gray pt-3 text-sm font-bold text-blue-text">
         <Ruby text={t('common.readMore')} />
         <Icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-0.5" />
       </span>

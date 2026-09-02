@@ -179,9 +179,9 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
     items: LocalizedField[],
     onChange: (next: LocalizedField[]) => void,
   ) => (
-    <fieldset className="rounded-card border border-snow-200 bg-white p-4">
-      <legend className="px-1 text-sm font-bold text-snow-800">{label}</legend>
-      <p className="mb-3 text-xs text-snow-500">{hint}</p>
+    <fieldset className="rounded-card border border-faded-gray bg-white p-4">
+      <legend className="px-1 text-sm font-bold text-charcoal">{label}</legend>
+      <p className="mb-3 text-xs text-pencil-gray">{hint}</p>
       <div className="space-y-4">
         {items.map((item, index) => (
           <div key={index}>
@@ -202,7 +202,7 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
         ))}
       </div>
       <button type="button" onClick={() => onChange([...items, emptyField()])}
-        className="mt-3 rounded-full px-4 py-2 text-xs font-bold text-brand-700 ring-1 ring-brand-200 ring-inset hover:bg-brand-50">
+        className="mt-3 rounded-card px-4 py-2 text-xs font-bold text-blue-text border-2 border-eager-green hover:bg-storybook-green">
         追加
       </button>
     </fieldset>
@@ -211,7 +211,7 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
   if (draft) {
     const lockedForEditor = scope.kind === 'editor'
     return (
-      <section className="rounded-card bg-white p-6 ring-1 ring-snow-200">
+      <section className="rounded-card bg-white p-6 border-2 border-faded-gray">
         <h2 className="text-lg font-bold">{draft.id ? '団体を編集' : '団体を追加'}</h2>
 
         <div className="mt-5 space-y-5">
@@ -232,21 +232,21 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
           {repeatable('主な活動', '箇条書きで並びます。', draft.activities,
             (activities) => setDraft({ ...draft, activities }))}
 
-          <fieldset className="rounded-card border border-snow-200 bg-white p-4">
-            <legend className="px-1 text-sm font-bold text-snow-800">イメージ画像（省略可）</legend>
-            <p className="mb-3 text-xs text-snow-500">
+          <fieldset className="rounded-card border border-faded-gray bg-white p-4">
+            <legend className="px-1 text-sm font-bold text-charcoal">イメージ画像（省略可）</legend>
+            <p className="mb-3 text-xs text-pencil-gray">
               未設定のときは、団体ごとに決まった模様が自動で表示されます。
             </p>
             {(preview || draft.imageId) && (
               <img
                 src={preview || `/photos/${draft.imageId}.jpg`}
                 alt=""
-                className="mb-3 h-32 w-full rounded-lg object-cover"
+                className="mb-3 h-32 w-full rounded-card object-cover"
               />
             )}
             <input type="file" accept="image/*" disabled={busy}
               onChange={(e) => void pickImage(e.target.files?.[0])}
-              className="block w-full text-sm file:mr-3 file:rounded-full file:border-0 file:bg-brand-700 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-brand-800" />
+              className="block w-full text-sm file:mr-3 file:rounded-card file:border-0 file:bg-eager-green file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-eager-green" />
             {draft.imageId && (
               <button type="button" onClick={() => { setDraft({ ...draft, imageId: '' }); setPreview('') }}
                 className="mt-2 rounded px-2 py-1 text-xs font-bold text-rose-700 hover:bg-rose-50">
@@ -256,15 +256,15 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
           </fieldset>
 
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-snow-600">連絡先メール（省略可）</label>
+            <label className="mb-1.5 block text-xs font-bold text-pencil-gray">連絡先メール（省略可）</label>
             <input type="email" value={draft.email}
               onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-              className="w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm" />
+              className="w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm" />
           </div>
 
-          <fieldset className="rounded-card border border-snow-200 bg-white p-4">
-            <legend className="px-1 text-sm font-bold text-snow-800">リンク</legend>
-            <p className="mb-3 text-xs text-snow-500">Instagram や公式サイトなど。</p>
+          <fieldset className="rounded-card border border-faded-gray bg-white p-4">
+            <legend className="px-1 text-sm font-bold text-charcoal">リンク</legend>
+            <p className="mb-3 text-xs text-pencil-gray">Instagram や公式サイトなど。</p>
             <div className="space-y-2">
               {draft.links.map((link, index) => (
                 <div key={index} className="flex flex-wrap gap-2">
@@ -273,16 +273,16 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
                       ...draft,
                       links: draft.links.map((l, i) => (i === index ? { ...l, label: e.target.value } : l)),
                     })}
-                    className="min-w-0 flex-1 rounded-lg border border-snow-300 px-3 py-2 text-sm" />
+                    className="min-w-0 flex-1 rounded-card border border-faded-gray px-3 py-2 text-sm" />
                   <input value={link.url} placeholder="https://…" inputMode="url"
                     onChange={(e) => setDraft({
                       ...draft,
                       links: draft.links.map((l, i) => (i === index ? { ...l, url: e.target.value } : l)),
                     })}
-                    className="min-w-0 flex-[2] rounded-lg border border-snow-300 px-3 py-2 text-sm" />
+                    className="min-w-0 flex-[2] rounded-card border border-faded-gray px-3 py-2 text-sm" />
                   <button type="button"
                     onClick={() => setDraft({ ...draft, links: draft.links.filter((_, i) => i !== index) })}
-                    className="rounded-full px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                    className="rounded-card px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">
                     削除
                   </button>
                 </div>
@@ -290,66 +290,66 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
             </div>
             <button type="button"
               onClick={() => setDraft({ ...draft, links: [...draft.links, { label: '', url: '' }] })}
-              className="mt-3 rounded-full px-4 py-2 text-xs font-bold text-brand-700 ring-1 ring-brand-200 ring-inset hover:bg-brand-50">
+              className="mt-3 rounded-card px-4 py-2 text-xs font-bold text-blue-text border-2 border-eager-green hover:bg-storybook-green">
               リンクを追加
             </button>
           </fieldset>
 
-          <label className="flex items-center gap-2 text-sm font-medium text-snow-700">
+          <label className="flex items-center gap-2 text-sm font-medium text-charcoal">
             <input type="checkbox" checked={draft.recruiting}
               onChange={(e) => setDraft({ ...draft, recruiting: e.target.checked })}
-              className="size-4 rounded border-snow-300" />
+              className="size-4 rounded border-faded-gray" />
             メンバーを募集中として表示する
           </label>
 
-          <details className="rounded-card border border-snow-200 p-4">
-            <summary className="cursor-pointer text-sm font-bold text-snow-700">出典（省略可）</summary>
-            <p className="mt-2 mb-3 text-xs text-snow-500">
+          <details className="rounded-card border border-faded-gray p-4">
+            <summary className="cursor-pointer text-sm font-bold text-charcoal">出典（省略可）</summary>
+            <p className="mt-2 mb-3 text-xs text-pencil-gray">
               公開情報をもとに掲載している場合、その出典を明示できます。
             </p>
             <input value={draft.sourceUrl} placeholder="https://…" inputMode="url"
               onChange={(e) => setDraft({ ...draft, sourceUrl: e.target.value })}
-              className="mb-3 w-full rounded-lg border border-snow-300 px-3 py-2 text-sm" />
+              className="mb-3 w-full rounded-card border border-faded-gray px-3 py-2 text-sm" />
             <LocalizedInput label="出典の名称" value={draft.sourceLabel}
               onChange={(sourceLabel) => setDraft({ ...draft, sourceLabel })} />
           </details>
 
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-snow-600">
+            <label className="mb-1.5 block text-xs font-bold text-pencil-gray">
               URL（公開ページのアドレス）
             </label>
             <input value={draft.slug} disabled={lockedForEditor}
               onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
-              className="w-full rounded-lg border border-snow-300 px-3 py-2.5 font-mono text-sm disabled:bg-snow-100 disabled:text-snow-500" />
-            <p className="mt-1 text-xs text-snow-500">
+              className="w-full rounded-card border border-faded-gray px-3 py-2.5 font-mono text-sm disabled:bg-paper-white disabled:text-pencil-gray" />
+            <p className="mt-1 text-xs text-pencil-gray">
               /organizations/{draft.slug || '…'}
               {lockedForEditor && '（変更は運営のみ）'}
             </p>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-snow-600">公開状態</label>
+            <label className="mb-1.5 block text-xs font-bold text-pencil-gray">公開状態</label>
             <select value={draft.status} disabled={lockedForEditor}
               onChange={(e) => setDraft({ ...draft, status: e.target.value as 'draft' | 'published' })}
-              className="w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm disabled:bg-snow-100 disabled:text-snow-500">
+              className="w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm disabled:bg-paper-white disabled:text-pencil-gray">
               <option value="draft">下書き（サイトには出ません）</option>
               <option value="published">公開する</option>
             </select>
             {lockedForEditor && (
-              <p className="mt-1 text-xs text-snow-500">公開状態の変更は運営のみ行えます。</p>
+              <p className="mt-1 text-xs text-pencil-gray">公開状態の変更は運営のみ行えます。</p>
             )}
           </div>
         </div>
 
-        {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
+        {error && <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
 
         <div className="mt-6 flex flex-wrap gap-3">
           <button onClick={() => void save()} disabled={busy}
-            className="rounded-full bg-hanabi-600 px-6 py-3 text-sm font-bold text-white hover:bg-hanabi-700 disabled:opacity-50">
+            className="rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white hover:bg-eager-green disabled:opacity-50">
             {busy ? '保存中…' : '保存する'}
           </button>
           <button onClick={() => { setDraft(null); setPreview(''); setError('') }}
-            className="rounded-full px-6 py-3 text-sm font-bold text-snow-600 hover:bg-snow-100">
+            className="rounded-card px-6 py-3 text-sm font-bold text-pencil-gray hover:bg-paper-white">
             やめる
           </button>
         </div>
@@ -358,44 +358,44 @@ export default function OrganizationEditor({ scope }: { scope: Scope }) {
   }
 
   return (
-    <section className="rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <section className="rounded-card bg-white p-6 border-2 border-faded-gray">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold">団体</h2>
         {canCreate && (
           <button onClick={() => { setDraft(newDraft()); setNotice(''); setPreview('') }}
-            className="rounded-full bg-hanabi-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-hanabi-700">
+            className="rounded-card bg-eager-green px-5 py-2.5 text-sm font-bold text-white hover:bg-eager-green">
             団体を追加する
           </button>
         )}
       </div>
 
-      {notice && <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{notice}</p>}
-      {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
+      {notice && <p className="mt-4 rounded-card bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{notice}</p>}
+      {error && <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
 
       {orgs.length === 0 ? (
-        <p className="mt-5 rounded-lg border border-dashed border-snow-300 px-4 py-10 text-center text-sm text-snow-500">
+        <p className="mt-5 rounded-card border border-dashed border-faded-gray px-4 py-10 text-center text-sm text-pencil-gray">
           {canCreate ? 'まだ団体がありません。「団体を追加する」から登録してください。' : '担当する団体が見つかりません。'}
         </p>
       ) : (
-        <ul className="mt-5 divide-y divide-snow-200">
+        <ul className="mt-5 divide-y divide-faded-gray">
           {orgs.map((org) => (
             <li key={org.id} className="flex flex-wrap items-center gap-3 py-3">
-              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                org.status === 'published' ? 'bg-emerald-50 text-emerald-800' : 'bg-snow-100 text-snow-600'
+              <span className={`rounded-card px-2 py-0.5 text-xs font-bold ${
+                org.status === 'published' ? 'bg-emerald-50 text-emerald-800' : 'bg-paper-white text-pencil-gray'
               }`}>
                 {org.status === 'published' ? '公開中' : '下書き'}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium text-snow-800">{org.name.ja || '(名称未設定)'}</span>
-                <span className="mt-0.5 block font-mono text-xs text-snow-500">/{org.slug}</span>
+                <span className="block truncate font-medium text-charcoal">{org.name.ja || '(名称未設定)'}</span>
+                <span className="mt-0.5 block font-mono text-xs text-pencil-gray">/{org.slug}</span>
               </span>
               <button onClick={() => { setDraft(org); setNotice(''); setPreview('') }}
-                className="rounded-full px-3 py-1.5 text-xs font-bold text-brand-700 ring-1 ring-brand-200 ring-inset hover:bg-brand-50">
+                className="rounded-card px-3 py-1.5 text-xs font-bold text-blue-text border-2 border-eager-green hover:bg-storybook-green">
                 編集
               </button>
               {canCreate && (
                 <button onClick={() => void remove(org.id)}
-                  className="rounded-full px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                  className="rounded-card px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">
                   削除
                 </button>
               )}

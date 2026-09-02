@@ -73,6 +73,18 @@ const ogImageUrl = ogImage ?? absolute(ogFallback.src)
 <html lang={meta.htmlLang}>
   <head>
     <meta charset="UTF-8" />
+
+    {/*
+      丸ゴシック1書体で和欧を通す。日本語は字数が多いので、Google Fonts の
+      サブセット配信に任せて必要な範囲だけ落とす。display=swap により、
+      読み込み前でも本文はすぐ表示される（回線が細い環境への配慮）。
+    */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{fullTitle}</title>
     <meta name="description" content={metaDescription} />
@@ -110,14 +122,14 @@ const ogImageUrl = ogImage ?? absolute(ogFallback.src)
   <body class="flex min-h-screen flex-col">
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-card focus:bg-eager-green focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
     >
       {t('nav.skipToContent')}
     </a>
 
-    <div class="bg-hanabi-800 text-hanabi-50">
+    <div class="bg-eager-green text-paper-white">
       <Container class="flex items-start gap-3 py-2.5">
-        <Icon name="info" class="mt-0.5 size-4 shrink-0 text-hanabi-300" />
+        <Icon name="info" class="mt-0.5 size-4 shrink-0 text-storybook-green" />
         <p class="text-balance-ja flex-1 text-xs leading-relaxed">{t('notice.prototype')}</p>
       </Container>
     </div>

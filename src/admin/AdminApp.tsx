@@ -41,7 +41,7 @@ export default function AdminApp() {
   }, [])
 
   if (phase.kind === 'loading') {
-    return <p className="py-16 text-center text-snow-500">読み込み中…</p>
+    return <p className="py-16 text-center text-pencil-gray">読み込み中…</p>
   }
   if (phase.kind === 'signed-out') return <SignIn />
 
@@ -90,29 +90,29 @@ function SignIn() {
   }
 
   return (
-    <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-sm rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-sm rounded-card bg-white p-6 border-2 border-faded-gray">
       <h2 className="text-lg font-bold">ログイン</h2>
-      <p className="mt-1 text-sm text-snow-500">運営メンバーと、招待された団体の編集者が使えます。</p>
+      <p className="mt-1 text-sm text-pencil-gray">運営メンバーと、招待された団体の編集者が使えます。</p>
 
-      <label className="mt-5 block text-xs font-bold text-snow-600" htmlFor="email">メールアドレス</label>
+      <label className="mt-5 block text-xs font-bold text-pencil-gray" htmlFor="email">メールアドレス</label>
       <input id="email" type="email" autoComplete="username" required value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="mt-1.5 w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm" />
+        className="mt-1.5 w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm" />
 
-      <label className="mt-4 block text-xs font-bold text-snow-600" htmlFor="password">パスワード</label>
+      <label className="mt-4 block text-xs font-bold text-pencil-gray" htmlFor="password">パスワード</label>
       <input id="password" type="password" autoComplete="current-password" required value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="mt-1.5 w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm" />
+        className="mt-1.5 w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm" />
 
-      {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
 
       <button type="submit" disabled={busy}
-        className="mt-5 w-full rounded-full bg-brand-700 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-800 disabled:opacity-50">
+        className="mt-5 w-full rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green disabled:opacity-50">
         {busy ? '確認中…' : 'ログイン'}
       </button>
 
-      <p className="mt-5 border-t border-snow-200 pt-4 text-xs leading-relaxed text-snow-500">
-        招待コードをお持ちの方は<a href="/admin/join" className="font-bold text-brand-700 hover:underline">こちらから登録</a>してください。
+      <p className="mt-5 border-t border-faded-gray pt-4 text-xs leading-relaxed text-pencil-gray">
+        招待コードをお持ちの方は<a href="/admin/join" className="font-bold text-blue-text hover:underline">こちらから登録</a>してください。
       </p>
     </form>
   )
@@ -121,19 +121,19 @@ function SignIn() {
 function SignedIn({ user, role }: { user: User; role: Role }) {
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-white p-5 ring-1 ring-snow-200">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-white p-5 border-2 border-faded-gray">
         <div>
-          <p className="text-sm text-snow-600">
-            <span className="font-bold text-snow-800">{user.email}</span> でログイン中
+          <p className="text-sm text-pencil-gray">
+            <span className="font-bold text-charcoal">{user.email}</span> でログイン中
           </p>
-          <p className="mt-0.5 text-xs text-snow-500">
+          <p className="mt-0.5 text-xs text-pencil-gray">
             {role.kind === 'admin' && '運営（すべての内容を編集できます）'}
             {role.kind === 'editor' && `${role.organizationName} の編集者`}
             {role.kind === 'none' && '編集権限なし'}
           </p>
         </div>
         <button onClick={() => signOut(auth())}
-          className="rounded-full px-4 py-2 text-sm font-bold text-snow-600 transition-colors hover:bg-snow-100">
+          className="rounded-card px-4 py-2 text-sm font-bold text-pencil-gray transition-colors hover:bg-paper-white">
           ログアウト
         </button>
       </header>
@@ -149,7 +149,7 @@ function SignedIn({ user, role }: { user: User; role: Role }) {
 function VerifyEmail({ user }: { user: User }) {
   const [sent, setSent] = useState(false)
   return (
-    <section className="rounded-card bg-amber-50 p-5 ring-1 ring-amber-200">
+    <section className="rounded-card bg-amber-50 p-5 border-2 border-amber-200">
       <h2 className="text-sm font-bold text-amber-900">メールアドレスの確認が必要です</h2>
       <p className="mt-2 text-sm leading-relaxed text-amber-900">
         確認が済むまで、活動報告やイベントの保存はできません。
@@ -161,7 +161,7 @@ function VerifyEmail({ user }: { user: User }) {
           await sendEmailVerification(user)
           setSent(true)
         }}
-        className="mt-3 rounded-full bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700"
+        className="mt-3 rounded-card bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700"
       >
         {sent ? '送信しました' : '確認メールを再送する'}
       </button>
@@ -171,16 +171,16 @@ function VerifyEmail({ user }: { user: User }) {
 
 function NoRole({ user }: { user: User }) {
   return (
-    <section className="rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <section className="rounded-card bg-white p-6 border-2 border-faded-gray">
       <h2 className="text-lg font-bold">編集権限がありません</h2>
-      <p className="mt-2 text-sm leading-relaxed text-snow-600">
+      <p className="mt-2 text-sm leading-relaxed text-pencil-gray">
         招待コードをお持ちの場合は
-        <a href="/admin/join" className="font-bold text-brand-700 hover:underline">登録ページ</a>
+        <a href="/admin/join" className="font-bold text-blue-text hover:underline">登録ページ</a>
         からお進みください。運営メンバーの方は、Firebase コンソールの Firestore で
-        <code className="mx-1 rounded bg-snow-100 px-1">admins</code>
+        <code className="mx-1 rounded bg-paper-white px-1">admins</code>
         コレクションに下のUIDを追加してください。
       </p>
-      <p className="mt-3 rounded-lg bg-snow-100 px-3 py-2 font-mono text-sm break-all">{user.uid}</p>
+      <p className="mt-3 rounded-card bg-paper-white px-3 py-2 font-mono text-sm break-all">{user.uid}</p>
     </section>
   )
 }
@@ -204,9 +204,9 @@ function EditorSections({ organizationId }: { organizationId: string }) {
       <PublishNote />
       <ReportEditor scope={{ kind: 'editor', organizationId }} />
       <OrganizationEditor scope={{ kind: 'editor', organizationId }} />
-      <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
-        <h2 className="text-lg font-bold text-snow-700">イベントの編集</h2>
-        <p className="mt-2 text-sm text-snow-500">この先のフェーズで実装します。</p>
+      <section className="rounded-card border border-dashed border-faded-gray bg-white/60 p-6">
+        <h2 className="text-lg font-bold text-charcoal">イベントの編集</h2>
+        <p className="mt-2 text-sm text-pencil-gray">この先のフェーズで実装します。</p>
       </section>
     </>
   )
@@ -219,20 +219,20 @@ function EditorSections({ organizationId }: { organizationId: string }) {
  */
 function PublishNote() {
   return (
-    <section className="rounded-card bg-brand-50 p-5 ring-1 ring-brand-100">
-      <h2 className="text-sm font-bold text-brand-900">サイトに出るまでの流れ</h2>
-      <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-relaxed text-snow-700">
+    <section className="rounded-card bg-storybook-green p-5 border-2 border-eager-green">
+      <h2 className="text-sm font-bold text-charcoal">サイトに出るまでの流れ</h2>
+      <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-relaxed text-charcoal">
         <li>内容を書いて保存します（このとき「下書き」だとサイトには出ません）</li>
         <li>公開状態を「公開する」にして保存します</li>
         <li>最大30分ほどでサイトに反映されます</li>
       </ol>
-      <p className="mt-3 text-xs text-snow-600">
+      <p className="mt-3 text-xs text-pencil-gray">
         すぐ反映したいときは{' '}
         <a
           href="https://github.com/kantachiba/nagaoka-koksai/actions/workflows/deploy.yml"
           target="_blank"
           rel="noreferrer"
-          className="font-bold text-brand-700 underline underline-offset-2"
+          className="font-bold text-blue-text underline underline-offset-2"
         >
           こちらのページ
         </a>{' '}
@@ -248,9 +248,9 @@ function SeedSection() {
   const [busy, setBusy] = useState(false)
 
   return (
-    <section className="rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <section className="rounded-card bg-white p-6 border-2 border-faded-gray">
       <h2 className="text-lg font-bold">初期データの投入</h2>
-      <p className="mt-2 text-sm leading-relaxed text-snow-600">
+      <p className="mt-2 text-sm leading-relaxed text-pencil-gray">
         タグ9種・団体2件（市民活動団体 WA!! / ワールドランプ会）・活動報告1件を登録します。
         すでにデータがある場合は何もしません。イベントは実際の予定が分からないため含めていません。
       </p>
@@ -267,27 +267,27 @@ function SeedSection() {
           }
         }}
         disabled={busy}
-        className="mt-4 rounded-full bg-hanabi-600 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-hanabi-700 disabled:opacity-50"
+        className="mt-4 rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green disabled:opacity-50"
       >
         {busy ? '投入中…' : '初期データを投入する'}
       </button>
       {result && (
-        <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+        <p className="mt-4 rounded-card bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
           {result.message}
           {!result.skipped &&
             ` タグ ${result.created.tags} 件 / 団体 ${result.created.organizations} 件 / 活動報告 ${result.created.reports} 件`}
         </p>
       )}
-      {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
     </section>
   )
 }
 
 function ComingSoon() {
   return (
-    <section className="rounded-card border border-dashed border-snow-300 bg-white/60 p-6">
-      <h2 className="text-lg font-bold text-snow-700">イベントの編集</h2>
-      <p className="mt-2 text-sm text-snow-500">この先のフェーズで実装します。</p>
+    <section className="rounded-card border border-dashed border-faded-gray bg-white/60 p-6">
+      <h2 className="text-lg font-bold text-charcoal">イベントの編集</h2>
+      <p className="mt-2 text-sm text-pencil-gray">この先のフェーズで実装します。</p>
     </section>
   )
 }

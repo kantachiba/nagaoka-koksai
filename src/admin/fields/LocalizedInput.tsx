@@ -24,14 +24,14 @@ export default function LocalizedInput({ label, value, onChange, multiline, hint
   const set = (key: string, text: string) => onChange({ ...value, [key]: text })
 
   return (
-    <fieldset className="rounded-card border border-snow-200 bg-white p-4">
-      <legend className="px-1 text-sm font-bold text-snow-800">{label}</legend>
-      {hint && <p className="mb-3 text-xs text-snow-500">{hint}</p>}
+    <fieldset className="rounded-card border border-faded-gray bg-white p-4">
+      <legend className="px-1 text-sm font-bold text-charcoal">{label}</legend>
+      {hint && <p className="mb-3 text-xs text-pencil-gray">{hint}</p>}
 
       <div className="space-y-3">
         {LANGS.map((lang) => (
           <div key={lang.key}>
-            <label className="mb-1 block text-xs font-bold text-snow-600">
+            <label className="mb-1 block text-xs font-bold text-pencil-gray">
               {lang.label}
               {lang.required && <span className="ml-1 text-rose-600">*</span>}
             </label>
@@ -41,20 +41,20 @@ export default function LocalizedInput({ label, value, onChange, multiline, hint
                 rows={3}
                 value={value[lang.key] ?? ''}
                 onChange={(e) => set(lang.key, e.target.value)}
-                className="w-full rounded-lg border border-snow-300 px-3 py-2 text-sm"
+                className="w-full rounded-card border border-faded-gray px-3 py-2 text-sm"
               />
             ) : (
               <input
                 value={value[lang.key] ?? ''}
                 onChange={(e) => set(lang.key, e.target.value)}
-                className="w-full rounded-lg border border-snow-300 px-3 py-2 text-sm"
+                className="w-full rounded-card border border-faded-gray px-3 py-2 text-sm"
               />
             )}
           </div>
         ))}
       </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-snow-500">
+      <p className="mt-3 text-xs leading-relaxed text-pencil-gray">
         英語を空欄にすると、英語版では日本語が表示されます。
       </p>
     </fieldset>

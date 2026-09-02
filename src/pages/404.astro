@@ -14,13 +14,13 @@ const t = useTranslations(locale)
 
 <BaseLayout locale={locale} path="/404" title={t('notfound.title')}>
   <Container class="py-24 text-center sm:py-32">
-    <p class="text-6xl font-bold text-brand-100 sm:text-8xl">404</p>
+    <p class="text-6xl font-bold text-storybook-green sm:text-8xl">404</p>
     <h1 class="mt-4 text-2xl sm:text-3xl">{t('notfound.title')}</h1>
-    <p class="text-balance-ja mx-auto mt-4 max-w-md text-snow-600">{t('notfound.body')}</p>
+    <p class="text-balance-ja mx-auto mt-4 max-w-md text-pencil-gray">{t('notfound.body')}</p>
     <div class="mt-8 flex flex-wrap justify-center gap-3">
       <a
         href={localizePath('/', locale)}
-        class="inline-flex items-center justify-center gap-2.5 rounded-full bg-brand-700 px-7 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-brand-800"
+        class="btn-primary"
       >
         <Icon name="arrow-left" class="size-5" />
         {t('notfound.back')}

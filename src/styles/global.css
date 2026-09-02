@@ -1,68 +1,78 @@
 @import 'tailwindcss';
 
 /* =========================================================================
-   デザイントークン
-   長岡らしさ（信濃川の夜空 = brand / 長岡花火 = hanabi / 雪 = snow）を
-   ベースにしたカラーパレット。Tailwind v4 の @theme で定義しているため、
-   bg-brand-600 / text-hanabi-500 のようにそのままユーティリティが使えます。
+   デザイントークン（DESIGN.md 準拠）
+   白い紙のキャンバスに、緑1色と2px の枠線で組み立てる。
+   グラデーション・影・すりガラスは使わない。
    ========================================================================= */
 @theme {
-  /* 信濃川と夜空の藍 —— サイトの基調色 */
-  --color-brand-50: #eef4fb;
-  --color-brand-100: #d9e6f6;
-  --color-brand-200: #b7cded;
-  --color-brand-300: #8aabdf;
-  --color-brand-400: #5b84cc;
-  --color-brand-500: #3b64b4;
-  --color-brand-600: #2b4d97;
-  --color-brand-700: #243e7b;
-  --color-brand-800: #1e3363;
-  --color-brand-900: #1b2b50;
-  --color-brand-950: #111b33;
+  /* --- 色 -------------------------------------------------------------
+     ⚠️ DESIGN.md の値をそのまま文字に使うと WCAG AA を満たさない
+        （本文 4.48:1 / 緑の見出し 2.09:1 / リンク 2.44:1 / 緑地の白文字 2.09:1）。
+        本サイトは日本語を母語としない住民が主な読み手で、読みやすさを
+        最優先する要件があるため、**面の色はそのまま**に、**文字に使う色だけ**
+        同じ色相で明度を落とした変種を用意している。                        */
 
-  /* 長岡花火の橙 —— アクセント（CTA・強調） */
-  --color-hanabi-50: #fff5ed;
-  --color-hanabi-100: #ffe8d4;
-  --color-hanabi-200: #ffcda8;
-  --color-hanabi-300: #ffa971;
-  --color-hanabi-400: #ff7c38;
-  --color-hanabi-500: #f2600f;
-  --color-hanabi-600: #dd4708;
-  --color-hanabi-700: #b7330a;
-  --color-hanabi-800: #932a10;
-  --color-hanabi-900: #772510;
-  --color-hanabi-950: #400e06;
+  /** ブランドの緑。CTA の塗り・フッター帯・枠線に使う面の色。文字には使わない */
+  --color-eager-green: #58cc02;
+  /** 緑の文字用（白地で 4.52:1）。節見出しなど */
+  --color-green-text: #377e01; /* 白地 5.06:1、淡緑地 4.55:1 */
+  /** 淡い緑の敷き色 */
+  --color-storybook-green: #d7ffb8;
+  /** 青。枠線・アイコンなど面と線に使う */
+  --color-spark-blue: #1cb0f6;
+  /** リンク文字用の青（白地で 4.56:1） */
+  --color-blue-text: #1378a7;  /* 白地 4.92:1、淡青地 4.51:1 */
+  /** 緑帯の上のリンク文字 */
+  --color-fresh-leaf: #a5ed6e;
+  /** 濃い強調色。緑地の上の文字にも使う（緑地で 9.37:1） */
+  --color-night-ink: #000437;
+  --color-paper-white: #ffffff;
+  /** 見出しと本文の主色（白地で 8.72:1） */
+  --color-charcoal: #4b4b4b;
+  /** 補助的な本文（白地で 4.54:1）。DESIGN.md の #777777 をわずかに濃くした */
+  --color-pencil-gray: #767676;
+  /** 枠線（白地で 3.03:1）。DESIGN.md の #afafaf では境界が見えないため濃くした */
+  --color-faded-gray: #949494;
 
-  /* 雪あかりのニュートラル —— 背景・罫線・本文 */
-  --color-snow-50: #f8fafc;
-  --color-snow-100: #f1f4f8;
-  --color-snow-200: #e3e8ef;
-  --color-snow-300: #cbd3df;
-  --color-snow-400: #97a3b6;
-  --color-snow-500: #6b7a90;
-  --color-snow-600: #4e5b6e;
-  --color-snow-700: #3b4757;
-  --color-snow-800: #2a323e;
-  --color-snow-900: #1a1f28;
-
+  /* --- 書体 ----------------------------------------------------------- */
+  /**
+   * 丸ゴシック1書体で和欧を通す。DESIGN.md の feather / duolingo-sans は
+   * どちらも「丸くて親しみのある造形」が要点なので、日本語まで含めて
+   * その印象を保てる M PLUS Rounded 1c に寄せている。
+   */
   --font-sans:
-    'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', Meiryo,
-    'Noto Sans JP', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Nunito',
+    ui-rounded, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-sans);
 
-  --radius-card: 0.875rem;
+  /* --- 文字サイズ ------------------------------------------------------
+     行間は DESIGN.md の値より広めに取っている。1.18 は欧文向けの詰まりで、
+     日本語の本文には狭すぎるため。サイズと字送りは仕様どおり。            */
+  --text-caption: 13px;
+  --text-caption--line-height: 1.7;
+  --text-nav-label: 15px;
+  --text-nav-label--line-height: 1.33;
+  --text-nav-label--letter-spacing: 0.053em;
+  --text-body: 17px;
+  --text-body--line-height: 1.8;
+  --text-subheading: 19px;
+  --text-subheading--line-height: 1.6;
+  --text-heading-sm: 32px;
+  --text-heading-sm--line-height: 1.35;
+  --text-heading: 48px;
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -0.02em;
+  --text-display: 64px;
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
 
-  --animate-fade-up: fade-up 0.5s ease-out both;
-}
+  /* --- 角丸 ------------------------------------------------------------
+     ボタン・リンク・タグ・カードすべて 12px。鋭角は使わない。            */
+  --radius-card: 12px;
 
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(0.75rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* --- レイアウト ------------------------------------------------------ */
+  --container-page: 1200px;
 }
 
 @layer base {
@@ -72,83 +82,146 @@
   }
 
   body {
-    @apply bg-snow-50 text-snow-800 font-sans antialiased;
-    /* 和文の可読性を優先して行間をやや広めに */
+    @apply bg-paper-white text-charcoal font-sans;
+    font-size: var(--text-body);
+    font-weight: 500;
     line-height: 1.8;
   }
 
-  /* 見出しは行間を詰めて締める */
+  /* 見出しは丸ゴシックの太いウェイトで、字送りを詰める */
   h1,
   h2,
   h3,
   h4 {
-    line-height: 1.4;
-    @apply font-bold tracking-tight text-snow-900;
+    @apply font-extrabold text-charcoal;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
   }
 
-  /* キーボード操作時のフォーカスリングを全体で統一 */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-hanabi-500;
+    @apply outline-2 outline-offset-2 outline-spark-blue;
+  }
+}
+
+@layer components {
+  /* --- ボタン ----------------------------------------------------------
+     塗りは緑、補助は透明＋2px 枠。どちらも 12px 角丸。影は付けない。
+     Tailwind v4 の @apply は自作クラスを参照できないため、
+     共通の指定はセレクタをまとめて書いている。                           */
+  .btn,
+  .btn-primary,
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-card border-2 font-bold transition-colors;
+    padding: 14px 24px;
+  }
+
+  /**
+   * 主ボタン。鮮やかな緑の面はそのままに、文字は濃色にして読めるようにする
+   * （白文字だと 2.09:1 で基準を満たさないため）。
+   */
+  .btn-primary {
+    @apply border-eager-green bg-eager-green text-night-ink;
+  }
+  .btn-primary:hover {
+    @apply border-[#4cb302] bg-[#4cb302];
+  }
+
+  .btn-outline {
+    @apply border-faded-gray bg-transparent text-blue-text;
+  }
+  .btn-outline:hover {
+    @apply border-spark-blue bg-spark-blue/10;
+  }
+
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: var(--text-caption);
+  }
+
+  /* --- カード ----------------------------------------------------------
+     白地に 2px の枠。影やグラデーションではなく、枠線で面を立てる。      */
+  .card,
+  .card-link {
+    @apply rounded-card border-2 border-faded-gray bg-paper-white;
+  }
+  .card-link {
+    @apply block transition-colors;
+  }
+  .card-link:hover {
+    @apply border-eager-green;
+  }
+
+  /* --- タグ・ピル ------------------------------------------------------ */
+  .pill,
+  .pill-green,
+  .pill-blue,
+  .pill-gray {
+    @apply inline-flex shrink-0 items-center gap-1 rounded-card border-2 px-3 py-1 font-bold whitespace-nowrap;
+    font-size: var(--text-caption);
+  }
+  .pill-green {
+    @apply border-eager-green bg-storybook-green text-green-text;
+  }
+  .pill-blue {
+    @apply border-spark-blue bg-spark-blue/10 text-blue-text;
+  }
+  .pill,
+  .pill-gray {
+    @apply border-faded-gray bg-paper-white text-pencil-gray;
+  }
+
+  /* --- ナビゲーションのラベル ------------------------------------------ */
+  .nav-label {
+    @apply rounded-card px-4 py-2 font-bold text-pencil-gray transition-colors;
+    font-size: var(--text-nav-label);
+  }
+  .nav-label:hover {
+    @apply bg-storybook-green text-charcoal;
+  }
+  .nav-label[aria-current] {
+    @apply text-green-text;
+  }
+
+  /* --- 見出し ----------------------------------------------------------
+     節の見出しは緑。ブランドの声にあたる部分。                           */
+  .section-title {
+    @apply font-extrabold text-green-text;
+    font-size: var(--text-heading-sm);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+  @media (min-width: 640px) {
+    .section-title {
+      font-size: 40px;
+    }
+  }
+
+  /* 本文は中間のグレーに置いて、色のついた要素を前に出す */
+  .lead {
+    @apply text-pencil-gray;
+    font-size: var(--text-body);
+    line-height: 1.8;
   }
 }
 
 @layer utilities {
-  /* 本文の折り返しを日本語向けに（禁則処理・単語途中改行の抑制） */
+  /* 日本語の折り返し（禁則処理） */
   .text-balance-ja {
     word-break: normal;
     overflow-wrap: anywhere;
     line-break: strict;
   }
 
-  /* n 行でクランプ */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-}
-
-/* =========================================================================
-   本文エディタ（管理画面のみ）
-   公開ページの本文は BlockContent.astro が Tailwind のクラスで組み立てるため、
-   ここは編集中の見た目だけを整える。
-   ========================================================================= */
-@layer components {
-  .prose-editor h2 {
-    @apply mt-6 mb-2 text-xl font-bold text-snow-900 first:mt-0;
-  }
-  .prose-editor h3 {
-    @apply mt-5 mb-2 text-lg font-bold text-snow-900 first:mt-0;
-  }
-  .prose-editor p {
-    @apply my-2 leading-loose text-snow-700;
-  }
-  .prose-editor ul {
-    @apply my-3 list-disc space-y-1 pl-6;
-  }
-  .prose-editor ol {
-    @apply my-3 list-decimal space-y-1 pl-6;
-  }
-  .prose-editor blockquote {
-    @apply my-4 border-l-4 border-brand-200 bg-brand-50/50 py-1 pl-4;
-  }
-  .prose-editor img {
-    @apply my-4 max-h-96 rounded-lg;
-  }
-  .prose-editor a {
-    @apply text-brand-700 underline underline-offset-2;
-  }
-  /* 空の段落にヒントを出す */
-  .prose-editor p.is-editor-empty:first-child::before {
-    @apply pointer-events-none float-left h-0 text-snow-400;
-    content: '本文を書いてください';
   }
 }

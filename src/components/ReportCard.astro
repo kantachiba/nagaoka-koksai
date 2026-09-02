@@ -36,13 +36,13 @@ const cover = report.photos[0]
 >
   <a
     href={localizePath(`/reports/${report.slug}`, locale)}
-    class="flex h-full flex-col overflow-hidden rounded-card bg-white ring-1 ring-snow-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-900/5 hover:ring-brand-200"
+    class="flex h-full flex-col overflow-hidden rounded-card bg-white border-2 border-faded-gray transition-colors hover:border-eager-green"
   >
-    <div class="relative aspect-16/9 overflow-hidden bg-brand-900">
-      <PhotoImage photoId={cover?.photoId} seed={report.slug} class="transition-transform duration-500 group-hover:scale-105" />
+    <div class="relative aspect-16/9 overflow-hidden bg-eager-green">
+      <PhotoImage photoId={cover?.photoId} seed={report.slug} class="transition-transform" />
       {
         report.photos.length > 1 && (
-          <span class="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-snow-900/70 px-2.5 py-1 text-xs font-semibold text-white">
+          <span class="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-card bg-charcoal/70 px-2.5 py-1 text-xs font-semibold text-white">
             <Icon name="camera" class="size-3.5" />
             {report.photos.length}
           </span>
@@ -51,7 +51,7 @@ const cover = report.photos[0]
     </div>
 
     <div class="flex flex-1 flex-col p-5">
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-snow-500">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-pencil-gray">
         <time datetime={report.heldOn}>
           <Ruby text={formatDate(report.heldOn, locale, { weekday: false })} />
         </time>
@@ -65,17 +65,17 @@ const cover = report.photos[0]
         }
       </div>
 
-      <h3 class="text-balance-ja mt-2 line-clamp-2 text-lg leading-snug font-bold transition-colors group-hover:text-brand-700">
+      <h3 class="text-balance-ja mt-2 line-clamp-2 text-lg leading-snug font-bold transition-colors group-hover:text-blue-text">
         <LocalizedTextView field={report.title} locale={locale} notice={false} />
       </h3>
 
-      <p class="text-balance-ja mt-2 line-clamp-3 flex-1 text-sm text-snow-600">
+      <p class="text-balance-ja mt-2 line-clamp-3 flex-1 text-sm text-pencil-gray">
         <LocalizedTextView field={report.summary} locale={locale} notice={false} />
       </p>
 
       {
         organization && (
-          <p class="mt-4 flex items-center gap-1.5 border-t border-snow-200 pt-3 text-xs text-snow-500">
+          <p class="mt-4 flex items-center gap-1.5 border-t border-faded-gray pt-3 text-xs text-pencil-gray">
             <Icon name="building" class="size-3.5" />
             <span class="min-w-0 truncate">
               <LocalizedTextView field={organization.shortName} locale={locale} notice={false} />

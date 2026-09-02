@@ -39,15 +39,19 @@ const toneOf = (event: EventItem): string => {
   return tag?.tone ?? 'brand'
 }
 
+/**
+ * カレンダーのチップ。DESIGN.md は副次パレットをUIに使わないため、
+ * タグの色分けは持ち込まず、緑・青・グレーの3種類に寄せている。
+ */
 const CHIP: Record<string, string> = {
-  brand: 'bg-brand-100 text-brand-800 hover:bg-brand-200',
-  hanabi: 'bg-hanabi-100 text-hanabi-800 hover:bg-hanabi-200',
-  emerald: 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200',
-  violet: 'bg-violet-100 text-violet-800 hover:bg-violet-200',
-  sky: 'bg-sky-100 text-sky-800 hover:bg-sky-200',
-  amber: 'bg-amber-100 text-amber-900 hover:bg-amber-200',
-  rose: 'bg-rose-100 text-rose-800 hover:bg-rose-200',
-  slate: 'bg-snow-200 text-snow-700 hover:bg-snow-300',
+  brand: 'border-spark-blue bg-spark-blue/10 text-blue-text',
+  sky: 'border-spark-blue bg-spark-blue/10 text-blue-text',
+  emerald: 'border-eager-green bg-storybook-green text-green-text',
+  hanabi: 'border-eager-green bg-storybook-green text-green-text',
+  violet: 'border-faded-gray bg-paper-white text-charcoal',
+  amber: 'border-faded-gray bg-paper-white text-charcoal',
+  rose: 'border-faded-gray bg-paper-white text-charcoal',
+  slate: 'border-faded-gray bg-paper-white text-charcoal',
 }
 ---
 
@@ -56,8 +60,8 @@ const CHIP: Record<string, string> = {
     <Ruby text={formatMonth(month, locale)} />
   </h3>
 
-  <div class="overflow-hidden rounded-card ring-1 ring-snow-200">
-    <div class="grid grid-cols-7 bg-snow-100 text-center text-xs font-bold text-snow-600">
+  <div class="overflow-hidden rounded-card border-2 border-faded-gray">
+    <div class="grid grid-cols-7 bg-paper-white text-center text-xs font-bold text-pencil-gray">
       {
         weekdays.map((day, index) => (
           <div
@@ -73,7 +77,7 @@ const CHIP: Record<string, string> = {
       }
     </div>
 
-    <div class="grid grid-cols-7 bg-snow-200 gap-px">
+    <div class="grid grid-cols-7 bg-faded-gray gap-px">
       {
         cells.map((cell) => {
           const dayEvents = byDate.get(cell.date) ?? []
@@ -82,13 +86,13 @@ const CHIP: Record<string, string> = {
             <div
               class:list={[
                 'min-h-16 bg-white p-1 sm:min-h-24 sm:p-1.5',
-                !cell.inMonth && 'bg-snow-50',
+                !cell.inMonth && 'bg-paper-white',
               ]}
             >
               <div
                 class:list={[
                   'text-right text-[0.7rem] tabular-nums sm:text-xs',
-                  cell.inMonth ? 'text-snow-600' : 'text-snow-300',
+                  cell.inMonth ? 'text-pencil-gray' : 'text-faded-gray',
                 ]}
               >
                 {dayNumber}

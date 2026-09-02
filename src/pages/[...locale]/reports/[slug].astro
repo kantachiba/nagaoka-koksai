@@ -53,12 +53,12 @@ const cover = report.photos[0]
 >
   <Container>
     <nav aria-label={t('common.breadcrumb')} class="py-4">
-      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-snow-500">
-        <li><a href={localizePath('/', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.home')} /></a></li>
-        <li aria-hidden="true" class="text-snow-300">／</li>
-        <li><a href={localizePath('/reports', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.reports')} /></a></li>
-        <li aria-hidden="true" class="text-snow-300">／</li>
-        <li class="font-medium text-snow-700" aria-current="page"><Ruby text={title} /></li>
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-pencil-gray">
+        <li><a href={localizePath('/', locale)} class="hover:text-blue-text hover:underline"><Ruby text={t('nav.home')} /></a></li>
+        <li aria-hidden="true" class="text-faded-gray">／</li>
+        <li><a href={localizePath('/reports', locale)} class="hover:text-blue-text hover:underline"><Ruby text={t('nav.reports')} /></a></li>
+        <li aria-hidden="true" class="text-faded-gray">／</li>
+        <li class="font-medium text-charcoal" aria-current="page"><Ruby text={title} /></li>
       </ol>
     </nav>
   </Container>
@@ -76,17 +76,17 @@ const cover = report.photos[0]
           <LocalizedTextView field={report.title} locale={locale} />
         </h1>
 
-        <dl class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-snow-500">
+        <dl class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-pencil-gray">
           <div class="flex items-center gap-1.5">
             <dt class="sr-only"><Ruby text={t('report.heldOn')} /></dt>
-            <Icon name="calendar" class="size-4 text-brand-500" />
+            <Icon name="calendar" class="size-4 text-blue-text" />
             <dd><Ruby text={t('report.heldOn')} />：<time datetime={report.heldOn}><Ruby text={formatDate(report.heldOn, locale)} /></time></dd>
           </div>
           {
             report.participants !== undefined && (
               <div class="flex items-center gap-1.5">
                 <dt class="sr-only"><Ruby text={t('report.participants')} /></dt>
-                <Icon name="users" class="size-4 text-brand-500" />
+                <Icon name="users" class="size-4 text-blue-text" />
                 <dd><Ruby text={t('report.participants')} />：{withUnit(report.participants, t('unit.people'), locale)}</dd>
               </div>
             )
@@ -95,7 +95,7 @@ const cover = report.photos[0]
             organization && (
               <div class="flex items-center gap-1.5">
                 <dt class="sr-only"><Ruby text={t('report.relatedOrg')} /></dt>
-                <Icon name="building" class="size-4 text-brand-500" />
+                <Icon name="building" class="size-4 text-blue-text" />
                 <dd><LocalizedTextView field={organization.shortName} locale={locale} notice={false} /></dd>
               </div>
             )
@@ -105,13 +105,13 @@ const cover = report.photos[0]
 
       {
         cover && (
-          <div class="mt-8 aspect-16/9 overflow-hidden rounded-card bg-brand-900">
+          <div class="mt-8 aspect-16/9 overflow-hidden rounded-card bg-eager-green">
             <PhotoImage photoId={cover.photoId} seed={report.slug} alt={stripRuby(title)} eager />
           </div>
         )
       }
 
-      <p class="text-balance-ja mt-8 rounded-card border-l-4 border-hanabi-400 bg-hanabi-50 px-5 py-4 leading-relaxed font-medium text-snow-700">
+      <p class="text-balance-ja mt-8 rounded-card border-l-4 border-eager-green bg-storybook-green px-5 py-4 leading-relaxed font-medium text-charcoal">
         <LocalizedTextView field={report.summary} locale={locale} />
       </p>
 
@@ -123,16 +123,16 @@ const cover = report.photos[0]
         report.photos.length > 1 && (
           <section class="mt-12">
             <h2 class="flex items-center gap-2 text-xl">
-              <Icon name="camera" class="size-5 text-hanabi-600" />
+              <Icon name="camera" class="size-5 text-green-text" />
               <Ruby text={t('report.photos')} />
             </h2>
             <div class="mt-5 grid gap-5 sm:grid-cols-2">
               {report.photos.slice(1).map((photo) => (
                 <figure class="min-w-0">
-                  <div class="aspect-16/9 overflow-hidden rounded-card bg-brand-900">
+                  <div class="aspect-16/9 overflow-hidden rounded-card bg-eager-green">
                     <PhotoImage photoId={photo.photoId} seed={`${report.slug}-${photo.photoId}`} />
                   </div>
-                  <figcaption class="text-balance-ja mt-2 text-sm text-snow-500">
+                  <figcaption class="text-balance-ja mt-2 text-sm text-pencil-gray">
                     <LocalizedTextView field={photo.caption} locale={locale} notice={false} />
                   </figcaption>
                 </figure>
@@ -144,11 +144,11 @@ const cover = report.photos[0]
 
       {
         report.sourceUrl && (
-          <p class="mt-10 flex items-start gap-2 rounded-card bg-snow-100 px-5 py-4 text-sm text-snow-600">
-            <Icon name="info" class="mt-0.5 size-4 shrink-0 text-brand-500" />
+          <p class="mt-10 flex items-start gap-2 rounded-card bg-paper-white px-5 py-4 text-sm text-pencil-gray">
+            <Icon name="info" class="mt-0.5 size-4 shrink-0 text-blue-text" />
             <span class="min-w-0">
               <Ruby text={t('common.source')} />：
-              <a href={report.sourceUrl} target="_blank" rel="noreferrer" class="break-all text-brand-700 underline-offset-2 hover:underline">
+              <a href={report.sourceUrl} target="_blank" rel="noreferrer" class="break-all text-blue-text underline-offset-2 hover:underline">
                 {report.sourceLabel ? stripRuby(resolveText(report.sourceLabel, locale).text) : report.sourceUrl}
               </a>
             </span>
@@ -160,30 +160,30 @@ const cover = report.photos[0]
         {
           relatedEvent && (
             <a href={localizePath(`/events/${relatedEvent.slug}`, locale)}
-              class="group flex items-center gap-4 rounded-card bg-white p-5 ring-1 ring-snow-200 transition-all hover:shadow-md hover:ring-brand-200">
-              <Icon name="calendar" class="size-6 shrink-0 text-brand-500" />
+              class="group flex items-center gap-4 rounded-card bg-white p-5 border-2 border-faded-gray transition-all hover:border-eager-green">
+              <Icon name="calendar" class="size-6 shrink-0 text-blue-text" />
               <span class="min-w-0 flex-1">
-                <span class="block text-xs text-snow-500"><Ruby text={t('nav.events')} /></span>
-                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-brand-700">
+                <span class="block text-xs text-pencil-gray"><Ruby text={t('nav.events')} /></span>
+                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-blue-text">
                   <LocalizedTextView field={relatedEvent.title} locale={locale} notice={false} />
                 </span>
               </span>
-              <Icon name="arrow-right" class="size-5 shrink-0 text-snow-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-600" />
+              <Icon name="arrow-right" class="size-5 shrink-0 text-faded-gray transition-all group-hover:translate-x-0.5 group-hover:text-blue-text" />
             </a>
           )
         }
         {
           organization && (
             <a href={localizePath(`/organizations/${organization.slug}`, locale)}
-              class="group flex items-center gap-4 rounded-card bg-white p-5 ring-1 ring-snow-200 transition-all hover:shadow-md hover:ring-brand-200">
-              <Icon name="building" class="size-6 shrink-0 text-brand-500" />
+              class="group flex items-center gap-4 rounded-card bg-white p-5 border-2 border-faded-gray transition-all hover:border-eager-green">
+              <Icon name="building" class="size-6 shrink-0 text-blue-text" />
               <span class="min-w-0 flex-1">
-                <span class="block text-xs text-snow-500"><Ruby text={t('report.relatedOrg')} /></span>
-                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-brand-700">
+                <span class="block text-xs text-pencil-gray"><Ruby text={t('report.relatedOrg')} /></span>
+                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-blue-text">
                   <LocalizedTextView field={organization.name} locale={locale} notice={false} />
                 </span>
               </span>
-              <Icon name="arrow-right" class="size-5 shrink-0 text-snow-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-600" />
+              <Icon name="arrow-right" class="size-5 shrink-0 text-faded-gray transition-all group-hover:translate-x-0.5 group-hover:text-blue-text" />
             </a>
           )
         }
@@ -196,7 +196,7 @@ const cover = report.photos[0]
       <div class="bg-white py-16">
         <Container>
           <h2 class="mb-8 text-2xl">
-            <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-hanabi-500 align-middle" />
+            <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-card bg-eager-green align-middle" />
             <Ruby text={t('report.others')} />
           </h2>
           <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

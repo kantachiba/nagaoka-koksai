@@ -55,16 +55,16 @@ export default function JoinApp() {
   }
 
   if (step.kind === 'checking') {
-    return <p className="py-16 text-center text-snow-500">招待コードを確認しています…</p>
+    return <p className="py-16 text-center text-pencil-gray">招待コードを確認しています…</p>
   }
 
   if (step.kind === 'invalid') {
     return (
-      <div className="mx-auto max-w-md rounded-card bg-white p-6 ring-1 ring-snow-200">
+      <div className="mx-auto max-w-md rounded-card bg-white p-6 border-2 border-faded-gray">
         <h2 className="text-lg font-bold">招待コードを確認してください</h2>
-        <p className="mt-2 text-sm leading-relaxed text-snow-600">{MESSAGES[step.status]}</p>
+        <p className="mt-2 text-sm leading-relaxed text-pencil-gray">{MESSAGES[step.status]}</p>
 
-        <label className="mt-5 block text-xs font-bold text-snow-600" htmlFor="code">
+        <label className="mt-5 block text-xs font-bold text-pencil-gray" htmlFor="code">
           招待コード
         </label>
         <input
@@ -72,12 +72,12 @@ export default function JoinApp() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="XXXX-XXXX-XXXX-XXXX"
-          className="mt-1.5 w-full rounded-lg border border-snow-300 px-3 py-2.5 font-mono text-sm"
+          className="mt-1.5 w-full rounded-card border border-faded-gray px-3 py-2.5 font-mono text-sm"
         />
         <button
           onClick={() => void check(code)}
           disabled={!code.trim()}
-          className="mt-4 w-full rounded-full bg-brand-700 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-800 disabled:opacity-50"
+          className="mt-4 w-full rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green disabled:opacity-50"
         >
           確認する
         </button>
@@ -87,16 +87,16 @@ export default function JoinApp() {
 
   if (step.kind === 'done') {
     return (
-      <div className="mx-auto max-w-md rounded-card bg-white p-6 ring-1 ring-snow-200">
+      <div className="mx-auto max-w-md rounded-card bg-white p-6 border-2 border-faded-gray">
         <h2 className="text-lg font-bold">登録が完了しました</h2>
-        <p className="mt-2 text-sm leading-relaxed text-snow-600">
+        <p className="mt-2 text-sm leading-relaxed text-pencil-gray">
           <span className="font-medium">{step.email}</span> 宛に確認メールを送りました。
           メール内のリンクを開いて、メールアドレスの確認を済ませてください。
           確認が終わると、活動報告やイベントを登録できるようになります。
         </p>
         <a
           href="/admin"
-          className="mt-5 inline-block rounded-full bg-brand-700 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-800"
+          className="mt-5 inline-block rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green"
         >
           管理画面へ
         </a>
@@ -143,17 +143,17 @@ function SignUpForm({
   }
 
   return (
-    <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-md rounded-card bg-white p-6 ring-1 ring-snow-200">
+    <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-md rounded-card bg-white p-6 border-2 border-faded-gray">
       <h2 className="text-lg font-bold">編集者として登録</h2>
-      <p className="mt-2 rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-900">
+      <p className="mt-2 rounded-card bg-storybook-green px-3 py-2 text-sm text-charcoal">
         <span className="font-bold">{step.organizationName}</span> の編集者として登録します。
       </p>
-      <p className="mt-3 text-sm leading-relaxed text-snow-600">
+      <p className="mt-3 text-sm leading-relaxed text-pencil-gray">
         登録すると、この団体の活動報告・イベント・団体情報を編集できるようになります。
         ほかの団体の内容は編集できません。
       </p>
 
-      <label className="mt-5 block text-xs font-bold text-snow-600" htmlFor="join-email">
+      <label className="mt-5 block text-xs font-bold text-pencil-gray" htmlFor="join-email">
         メールアドレス
       </label>
       <input
@@ -163,10 +163,10 @@ function SignUpForm({
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="mt-1.5 w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm"
+        className="mt-1.5 w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm"
       />
 
-      <label className="mt-4 block text-xs font-bold text-snow-600" htmlFor="join-password">
+      <label className="mt-4 block text-xs font-bold text-pencil-gray" htmlFor="join-password">
         パスワード（8文字以上）
       </label>
       <input
@@ -177,11 +177,11 @@ function SignUpForm({
         minLength={8}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="mt-1.5 w-full rounded-lg border border-snow-300 px-3 py-2.5 text-sm"
+        className="mt-1.5 w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm"
       />
 
       {error && (
-        <p role="alert" className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">
           {error}
         </p>
       )}
@@ -189,7 +189,7 @@ function SignUpForm({
       <button
         type="submit"
         disabled={busy}
-        className="mt-5 w-full rounded-full bg-hanabi-600 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-hanabi-700 disabled:opacity-50"
+        className="mt-5 w-full rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green disabled:opacity-50"
       >
         {busy ? '登録中…' : '登録する'}
       </button>

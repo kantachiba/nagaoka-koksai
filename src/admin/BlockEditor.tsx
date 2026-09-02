@@ -58,7 +58,7 @@ export default function BlockEditor({ localeKey, doc, organizationId, onChange }
     editorProps: {
       attributes: {
         class:
-          'prose-editor min-h-64 rounded-lg border border-snow-300 bg-white px-4 py-3 focus:outline-none',
+          'prose-editor min-h-64 rounded-card border border-faded-gray bg-white px-4 py-3 focus:outline-none',
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getJSON() as RichDoc),
@@ -107,29 +107,29 @@ export default function BlockEditor({ localeKey, doc, organizationId, onChange }
     editor.chain().focus().setLink({ href: url.trim() }).run()
   }
 
-  if (!editor) return <p className="text-sm text-snow-500">エディタを準備しています…</p>
+  if (!editor) return <p className="text-sm text-pencil-gray">エディタを準備しています…</p>
 
   const toolButton = (active: boolean) =>
     `rounded px-2.5 py-1 text-sm font-bold transition-colors ${
-      active ? 'bg-brand-700 text-white' : 'text-snow-700 hover:bg-snow-100'
+      active ? 'bg-eager-green text-white' : 'text-charcoal hover:bg-paper-white'
     }`
 
   return (
     <div>
       {/* ブロックを足すための操作 */}
-      <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg bg-snow-100 p-1.5">
+      <div className="mb-2 flex flex-wrap items-center gap-1 rounded-card bg-paper-white p-1.5">
         <button type="button" onClick={() => editor.chain().focus().setParagraph().run()}
           className={toolButton(editor.isActive('paragraph'))}>本文</button>
         <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={toolButton(editor.isActive('heading', { level: 2 }))}>見出し</button>
         <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className={toolButton(editor.isActive('heading', { level: 3 }))}>小見出し</button>
-        <span className="mx-1 h-5 w-px bg-snow-300" />
+        <span className="mx-1 h-5 w-px bg-faded-gray" />
         <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={toolButton(editor.isActive('bulletList'))}>箇条書き</button>
         <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()}
           className={toolButton(editor.isActive('blockquote'))}>引用</button>
-        <span className="mx-1 h-5 w-px bg-snow-300" />
+        <span className="mx-1 h-5 w-px bg-faded-gray" />
         <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
           className={toolButton(false)}>{uploading ? '追加中…' : '画像'}</button>
         <input ref={fileRef} type="file" accept="image/*" hidden
@@ -138,17 +138,17 @@ export default function BlockEditor({ localeKey, doc, organizationId, onChange }
 
       {/* 文字を選ぶと出るツールチップ */}
       <BubbleMenu editor={editor}
-        className="flex items-center gap-0.5 rounded-lg bg-snow-900 p-1 shadow-lg">
+        className="flex items-center gap-0.5 rounded-card bg-charcoal p-1">
         <button type="button" onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`rounded px-2.5 py-1 text-sm font-bold ${editor.isActive('bold') ? 'bg-white text-snow-900' : 'text-white hover:bg-snow-700'}`}>
+          className={`rounded px-2.5 py-1 text-sm font-bold ${editor.isActive('bold') ? 'bg-white text-charcoal' : 'text-white hover:bg-charcoal'}`}>
           太字
         </button>
         <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`rounded px-2.5 py-1 text-sm italic ${editor.isActive('italic') ? 'bg-white text-snow-900' : 'text-white hover:bg-snow-700'}`}>
+          className={`rounded px-2.5 py-1 text-sm italic ${editor.isActive('italic') ? 'bg-white text-charcoal' : 'text-white hover:bg-charcoal'}`}>
           斜体
         </button>
         <button type="button" onClick={setLink}
-          className={`rounded px-2.5 py-1 text-sm font-bold ${editor.isActive('link') ? 'bg-white text-snow-900' : 'text-white hover:bg-snow-700'}`}>
+          className={`rounded px-2.5 py-1 text-sm font-bold ${editor.isActive('link') ? 'bg-white text-charcoal' : 'text-white hover:bg-charcoal'}`}>
           リンク
         </button>
       </BubbleMenu>
@@ -156,13 +156,13 @@ export default function BlockEditor({ localeKey, doc, organizationId, onChange }
       <EditorContent editor={editor} />
 
       {error && (
-        <p role="alert" className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>
+        <p role="alert" className="mt-2 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>
       )}
 
-      <p className="mt-2 text-xs leading-relaxed text-snow-500">
-        行頭で <code className="rounded bg-snow-100 px-1">## </code> と打つと見出しに、
-        <code className="rounded bg-snow-100 px-1">- </code> で箇条書きに、
-        <code className="rounded bg-snow-100 px-1">&gt; </code> で引用になります。
+      <p className="mt-2 text-xs leading-relaxed text-pencil-gray">
+        行頭で <code className="rounded bg-paper-white px-1">## </code> と打つと見出しに、
+        <code className="rounded bg-paper-white px-1">- </code> で箇条書きに、
+        <code className="rounded bg-paper-white px-1">&gt; </code> で引用になります。
         文字を選ぶと太字・リンクのメニューが出ます。
       </p>
     </div>

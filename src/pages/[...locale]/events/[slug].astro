@@ -73,12 +73,12 @@ const canApply = event.visibility === 'public'
 >
   <Container>
     <nav aria-label={t('common.breadcrumb')} class="py-4">
-      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-snow-500">
-        <li><a href={localizePath('/', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.home')} /></a></li>
-        <li aria-hidden="true" class="text-snow-300">／</li>
-        <li><a href={localizePath('/events', locale)} class="hover:text-brand-700 hover:underline"><Ruby text={t('nav.events')} /></a></li>
-        <li aria-hidden="true" class="text-snow-300">／</li>
-        <li class="font-medium text-snow-700" aria-current="page"><Ruby text={title} /></li>
+      <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-pencil-gray">
+        <li><a href={localizePath('/', locale)} class="hover:text-blue-text hover:underline"><Ruby text={t('nav.home')} /></a></li>
+        <li aria-hidden="true" class="text-faded-gray">／</li>
+        <li><a href={localizePath('/events', locale)} class="hover:text-blue-text hover:underline"><Ruby text={t('nav.events')} /></a></li>
+        <li aria-hidden="true" class="text-faded-gray">／</li>
+        <li class="font-medium text-charcoal" aria-current="page"><Ruby text={title} /></li>
       </ol>
     </nav>
   </Container>
@@ -98,7 +98,7 @@ const canApply = event.visibility === 'public'
     <h1 class="text-balance-ja mt-4 text-3xl leading-snug sm:text-4xl">
       <LocalizedTextView field={event.title} locale={locale} />
     </h1>
-    <p class="text-balance-ja mt-4 max-w-3xl text-lg leading-relaxed text-snow-600">
+    <p class="text-balance-ja mt-4 max-w-3xl text-lg leading-relaxed text-pencil-gray">
       <LocalizedTextView field={event.summary} locale={locale} />
     </p>
 
@@ -106,7 +106,7 @@ const canApply = event.visibility === 'public'
       <div class="min-w-0">
         <section>
           <h2 class="flex items-center gap-2 text-xl">
-            <Icon name="info" class="size-5 text-hanabi-600" />
+            <Icon name="info" class="size-5 text-green-text" />
             <Ruby text={t('event.overview')} />
           </h2>
           <div class="mt-5">
@@ -116,10 +116,10 @@ const canApply = event.visibility === 'public'
 
         <section class="mt-12">
           <h2 class="flex items-center gap-2 text-xl">
-            <Icon name="map-pin" class="size-5 text-hanabi-600" />
+            <Icon name="map-pin" class="size-5 text-green-text" />
             <Ruby text={t('event.access')} />
           </h2>
-          <p class="text-balance-ja mt-4 leading-loose text-snow-700">
+          <p class="text-balance-ja mt-4 leading-loose text-charcoal">
             <LocalizedTextView field={event.access} locale={locale} />
           </p>
           {event.mapUrl && (
@@ -127,7 +127,7 @@ const canApply = event.visibility === 'public'
               href={event.mapUrl}
               target="_blank"
               rel="noreferrer"
-              class="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-700 ring-1 ring-brand-200 ring-inset transition-colors hover:bg-brand-50"
+              class="mt-4 inline-flex items-center gap-2 rounded-card bg-white px-4 py-2 text-sm font-bold text-blue-text border-2 border-eager-green transition-colors hover:bg-storybook-green"
             >
               <Icon name="map-pin" class="size-4" />
               <Ruby text={t('event.venue')} />
@@ -140,23 +140,23 @@ const canApply = event.visibility === 'public'
           <section class="mt-12">
             <a
               href={localizePath(`/reports/${relatedReport.slug}`, locale)}
-              class="group flex items-center gap-4 rounded-card bg-white p-5 ring-1 ring-snow-200 transition-all hover:shadow-md hover:ring-brand-200"
+              class="group flex items-center gap-4 rounded-card bg-white p-5 border-2 border-faded-gray transition-all hover:border-eager-green"
             >
-              <Icon name="camera" class="size-6 shrink-0 text-brand-500" />
+              <Icon name="camera" class="size-6 shrink-0 text-blue-text" />
               <span class="min-w-0 flex-1">
-                <span class="block text-xs text-snow-500"><Ruby text={t('event.reportLink')} /></span>
-                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-brand-700">
+                <span class="block text-xs text-pencil-gray"><Ruby text={t('event.reportLink')} /></span>
+                <span class="text-balance-ja mt-0.5 block font-bold transition-colors group-hover:text-blue-text">
                   <LocalizedTextView field={relatedReport.title} locale={locale} notice={false} />
                 </span>
               </span>
-              <Icon name="arrow-right" class="size-5 shrink-0 text-snow-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-600" />
+              <Icon name="arrow-right" class="size-5 shrink-0 text-faded-gray transition-all group-hover:translate-x-0.5 group-hover:text-blue-text" />
             </a>
           </section>
         )}
       </div>
 
       <aside class="lg:sticky lg:top-24 lg:self-start">
-        <div class="rounded-card bg-white p-6 ring-1 ring-snow-200">
+        <div class="rounded-card bg-white p-6 border-2 border-faded-gray">
           <h2 class="text-lg"><Ruby text={t('event.details')} /></h2>
           <div class="mt-2">
             <InfoList>
@@ -168,7 +168,7 @@ const canApply = event.visibility === 'public'
               </InfoRow>
               <InfoRow icon="map-pin" label={t('event.venue')}>
                 <span class="font-medium"><LocalizedTextView field={event.venue} locale={locale} notice={false} /></span>
-                <span class="mt-0.5 block text-sm text-snow-500">
+                <span class="mt-0.5 block text-sm text-pencil-gray">
                   <LocalizedTextView field={event.address} locale={locale} notice={false} />
                 </span>
               </InfoRow>
@@ -196,7 +196,7 @@ const canApply = event.visibility === 'public'
                 <InfoRow icon="building" label={t('event.organizer')}>
                   <a
                     href={localizePath(`/organizations/${organization.slug}`, locale)}
-                    class="font-medium text-brand-700 underline-offset-2 hover:underline"
+                    class="font-medium text-blue-text underline-offset-2 hover:underline"
                   >
                     <LocalizedTextView field={organization.name} locale={locale} notice={false} />
                   </a>
@@ -207,19 +207,19 @@ const canApply = event.visibility === 'public'
         </div>
 
         {/* 申込。公開レベルと申込方法で出し分ける */}
-        <div class="mt-5 rounded-card bg-brand-50 p-6 ring-1 ring-brand-100">
+        <div class="mt-5 rounded-card bg-storybook-green p-6 border-2 border-eager-green">
           {event.visibility === 'announce' ? (
-            <p class="flex items-start gap-2 text-sm font-bold text-brand-800">
+            <p class="flex items-start gap-2 text-sm font-bold text-blue-text">
               <Icon name="info" class="mt-0.5 size-4 shrink-0" />
               <Ruby text={t('event.visibility.announce')} />
             </p>
           ) : event.visibility === 'invite' ? (
-            <p class="flex items-start gap-2 text-sm font-bold text-brand-800">
+            <p class="flex items-start gap-2 text-sm font-bold text-blue-text">
               <Icon name="info" class="mt-0.5 size-4 shrink-0" />
               <Ruby text={t('event.visibility.invite')} />
             </p>
           ) : event.applicationType === 'none' ? (
-            <p class="flex items-start gap-2 text-sm font-bold text-brand-800">
+            <p class="flex items-start gap-2 text-sm font-bold text-blue-text">
               <Icon name="check" class="mt-0.5 size-4 shrink-0" />
               <Ruby text={t('event.noApply')} />
             </p>
@@ -228,31 +228,31 @@ const canApply = event.visibility === 'public'
               href={event.applicationUrl || `mailto:${event.applicationEmail}`}
               target={event.applicationUrl ? '_blank' : undefined}
               rel={event.applicationUrl ? 'noreferrer' : undefined}
-              class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-hanabi-600 px-7 py-3.5 text-base font-bold text-white transition-colors hover:bg-hanabi-700"
+              class="btn-primary"
             >
               <Ruby text={event.applicationUrl ? t('event.applyExternal') : t('event.applyByEmail')} />
               <Icon name="arrow-right" class="size-5" />
             </a>
           ) : canApply && FEATURES.applicationForm ? (
             /* B-3 の申込フォーム。フラグが有効になったらここに差し込む */
-            <p class="text-sm text-snow-600">
+            <p class="text-sm text-pencil-gray">
               <Ruby text={t('event.apply')} />
             </p>
           ) : (
-            <p class="flex items-start gap-2 text-sm text-snow-600">
-              <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-brand-500" />
+            <p class="flex items-start gap-2 text-sm text-pencil-gray">
+              <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-blue-text" />
               <Ruby text={t('event.contact')} />
             </p>
           )}
 
           {organization?.email && (
-            <div class="mt-5 border-t border-brand-200 pt-5">
-              <p class="text-xs font-bold text-snow-600"><Ruby text={t('event.contact')} /></p>
+            <div class="mt-5 border-t border-eager-green pt-5">
+              <p class="text-xs font-bold text-pencil-gray"><Ruby text={t('event.contact')} /></p>
               <a
                 href={`mailto:${organization.email}`}
-                class="mt-2 flex items-start gap-2 text-sm text-snow-700 underline-offset-2 hover:text-brand-700 hover:underline"
+                class="mt-2 flex items-start gap-2 text-sm text-charcoal underline-offset-2 hover:text-blue-text hover:underline"
               >
-                <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-brand-500" />
+                <Icon name="mail" class="mt-0.5 size-4 shrink-0 text-blue-text" />
                 <span class="min-w-0 break-all">{organization.email}</span>
               </a>
             </div>

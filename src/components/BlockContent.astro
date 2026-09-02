@@ -45,7 +45,7 @@ const hasMark = (node: RichNode, type: string): boolean =>
           href={link}
           target={link.startsWith('http') ? '_blank' : undefined}
           rel={link.startsWith('http') ? 'noreferrer' : undefined}
-          class="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+          class="text-blue-text underline underline-offset-2 hover:text-blue-text"
         >
           {emphasised}
         </a>
@@ -58,7 +58,7 @@ const hasMark = (node: RichNode, type: string): boolean =>
 
     if (node.type === 'paragraph') {
       return (
-        <p class="text-balance-ja leading-loose text-snow-700">
+        <p class="text-balance-ja leading-loose text-charcoal">
           <Self nodes={node.content} locale={locale} seed={seed} />
         </p>
       )
@@ -67,7 +67,7 @@ const hasMark = (node: RichNode, type: string): boolean =>
     if (node.type === 'heading') {
       const Tag = headingTag(node.attrs?.level)
       return (
-        <Tag class="text-balance-ja mt-10 mb-3 scroll-mt-24 font-bold text-snow-900 first:mt-0">
+        <Tag class="text-balance-ja mt-10 mb-3 scroll-mt-24 font-bold text-charcoal first:mt-0">
           <Self nodes={node.content} locale={locale} seed={seed} />
         </Tag>
       )
@@ -78,7 +78,7 @@ const hasMark = (node: RichNode, type: string): boolean =>
       return (
         <Tag
           class:list={[
-            'my-4 space-y-1.5 pl-6 text-snow-700',
+            'my-4 space-y-1.5 pl-6 text-charcoal',
             node.type === 'bulletList' ? 'list-disc' : 'list-decimal',
           ]}
         >
@@ -97,7 +97,7 @@ const hasMark = (node: RichNode, type: string): boolean =>
 
     if (node.type === 'blockquote') {
       return (
-        <blockquote class="my-6 border-l-4 border-brand-200 bg-brand-50/50 py-2 pl-5 text-snow-700">
+        <blockquote class="my-6 border-l-4 border-eager-green bg-storybook-green/50 py-2 pl-5 text-charcoal">
           <Self nodes={node.content} locale={locale} seed={seed} />
         </blockquote>
       )
@@ -108,11 +108,11 @@ const hasMark = (node: RichNode, type: string): boolean =>
       const caption = typeof node.attrs?.caption === 'string' ? node.attrs.caption : ''
       return (
         <figure class="my-8">
-          <div class="overflow-hidden rounded-card bg-brand-900">
+          <div class="overflow-hidden rounded-card bg-eager-green">
             <PhotoImage photoId={photoId} seed={`${seed}-${photoId ?? 'x'}`} alt={caption} />
           </div>
           {caption && (
-            <figcaption class="text-balance-ja mt-2 text-sm text-snow-500">
+            <figcaption class="text-balance-ja mt-2 text-sm text-pencil-gray">
               <Ruby text={caption} />
             </figcaption>
           )}

@@ -36,11 +36,11 @@ const countsOf = (organizationId: string) => ({
   <Container class="pt-8 pb-16">
     {
       bundle.organizations.length === 0 ? (
-        <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
-          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
+        <div class="rounded-card border border-dashed border-faded-gray bg-white/60 px-6 py-16 text-center">
+          <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-paper-white text-pencil-gray">
             <Icon name="building" class="size-6" />
           </div>
-          <p class="font-bold text-snow-800"><Ruby text={t('orgs.empty')} /></p>
+          <p class="font-bold text-charcoal"><Ruby text={t('orgs.empty')} /></p>
         </div>
       ) : (
         <div
