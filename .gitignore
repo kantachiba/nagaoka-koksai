@@ -1,15 +1,14 @@
-node_modules/
-dist/
-.astro/
-.firebase/
-firebase-debug.log
-*.local
-.DS_Store
 
 # ツールの作業ファイル
-.agents/
-.claude/settings.local.json
-skills-lock.json
-
 # ビルド時に Firestore から書き出す写真
+*.local
+.DS_Store
+.agents/
+.astro/
+.claude/settings.local.json
+.firebase/
+dist/
+firebase-debug.log
+node_modules/
 public/photos/
+skills-lock.json

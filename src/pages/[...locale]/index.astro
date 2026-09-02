@@ -2,11 +2,18 @@
 import { localeStaticPaths, localizePath, useTranslations, type Locale, type UiKey } from '../../i18n'
 import { resolveText } from '../../i18n/text'
 import { SITE_DESCRIPTION } from '../../config/site'
+import { findOrganization, getContent, listableEvents } from '../../lib/content'
+import { upcoming } from '../../lib/event-helpers'
+import EventCard from '../../components/EventCard.astro'
+import ReportCard from '../../components/ReportCard.astro'
+import OrganizationCard from '../../components/OrganizationCard.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import Container from '../../components/ui/Container.astro'
 import Icon from '../../components/ui/Icon.astro'
 import type { IconName } from '../../components/ui/Icon.astro'
 import Ruby from '../../components/Ruby.astro'
+import { Image } from 'astro:assets'
+import { SITE_PHOTOS } from '../../assets/photos'
 
 export function getStaticPaths() {
   return localeStaticPaths()
@@ -17,6 +24,16 @@ const t = useTranslations(locale)
 
 const heroLines = t('home.hero.title').split('\n')
 
+const bundle = await getContent()
+const events = upcoming(listableEvents(bundle)).slice(0, 3)
+const reports = [...bundle.reports].sort((a, b) => b.heldOn.localeCompare(a.heldOn)).slice(0, 3)
+
+/** 団体カードに出す件数 */
+const countsOf = (organizationId: string) => ({
+  events: listableEvents(bundle).filter((e) => e.organizationId === organizationId).length,
+  reports: bundle.reports.filter((r) => r.organizationId === organizationId).length,
+})
+
 const GUIDE: Array<{ icon: IconName; titleKey: UiKey; bodyKey: UiKey }> = [
   { icon: 'search', titleKey: 'home.guide.step1.title', bodyKey: 'home.guide.step1.body' },
   { icon: 'mail', titleKey: 'home.guide.step2.title', bodyKey: 'home.guide.step2.body' },
@@ -26,52 +43,24 @@ const GUIDE: Array<{ icon: IconName; titleKey: UiKey; bodyKey: UiKey }> = [
 
 <BaseLayout locale={locale} path="/" description={resolveText(SITE_DESCRIPTION, locale).text}>
   <section class="relative overflow-hidden bg-brand-950 text-white">
-    <div aria-hidden="true" class="pointer-events-none absolute inset-0">
-      <svg viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 size-full">
-        <defs>
-          <radialGradient id="hero-glow" cx="0.78" cy="0.28" r="0.6">
-            <stop offset="0%" stop-color="#3b64b4" stop-opacity="0.55"></stop>
-            <stop offset="100%" stop-color="#111b33" stop-opacity="0"></stop>
-          </radialGradient>
-        </defs>
-        <rect width="1200" height="600" fill="url(#hero-glow)"></rect>
-        {
-          [
-            { cx: 930, cy: 170, r: 130, spokes: 24, color: '#ffa971', opacity: 0.5 },
-            { cx: 1090, cy: 330, r: 84, spokes: 18, color: '#8aabdf', opacity: 0.35 },
-            { cx: 790, cy: 380, r: 56, spokes: 14, color: '#ffcda8', opacity: 0.25 },
-          ].map((burst) => (
-            <g stroke={burst.color} stroke-linecap="round">
-              {Array.from({ length: burst.spokes }, (_, i) => {
-                const angle = (i / burst.spokes) * Math.PI * 2
-                const outer = burst.r * (i % 2 === 0 ? 1 : 0.72)
-                return (
-                  <line
-                    x1={burst.cx + Math.cos(angle) * burst.r * 0.18}
-                    y1={burst.cy + Math.sin(angle) * burst.r * 0.18}
-                    x2={burst.cx + Math.cos(angle) * outer}
-                    y2={burst.cy + Math.sin(angle) * outer}
-                    stroke-width={i % 2 === 0 ? 1.8 : 1}
-                    opacity={burst.opacity}
-                  />
-                )
-              })}
-            </g>
-          ))
-        }
-        <g fill="none" stroke="#5b84cc">
-          {
-            [0, 1, 2, 3].map((i) => (
-              <path
-                d={`M -50 ${470 + i * 34} C 260 ${430 + i * 34}, 560 ${540 + i * 34}, 1250 ${450 + i * 34}`}
-                stroke-width={1 + i * 0.6}
-                opacity={0.16 + i * 0.05}
-              />
-            ))
-          }
-        </g>
-      </svg>
-      <div class="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-brand-950 to-transparent"></div>
+    {/*
+      背景写真。白文字の可読性を保ちつつ写真も見えるよう、暗幕の濃さを
+      実際の画素から逆算して決めている（見出し位置で 8:1 前後を確保）。
+      写真を差し替えるときは、明るい写真だとコントラストが落ちる点に注意。
+    */}
+    <div class="absolute inset-0">
+      <Image
+        src={SITE_PHOTOS.group.image}
+        alt=""
+        widths={[640, 1024, 1600, 2000]}
+        sizes="100vw"
+        loading="eager"
+        fetchpriority="high"
+        class="size-full object-cover object-center"
+      />
+      <div class="absolute inset-0 bg-brand-950/40"></div>
+      <div class="absolute inset-0 bg-linear-to-r from-brand-950/75 via-brand-950/30 to-brand-950/10"></div>
+      <div class="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-snow-50 to-transparent"></div>
     </div>
 
     <Container class="relative py-16 sm:py-24 lg:py-28">
@@ -112,17 +101,117 @@ const GUIDE: Array<{ icon: IconName; titleKey: UiKey; bodyKey: UiKey }> = [
   </section>
 
   {/* Phase 1 で microCMS を接続すると、ここに直近イベント・活動報告・団体が並ぶ */}
+  {/* 直近のイベント。まだ登録が無いときは、その旨だけ静かに出す */}
   <Container class="py-16 sm:py-20">
-    <div class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-16 text-center">
-      <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-snow-100 text-snow-500">
-        <Icon name="calendar" class="size-6" />
-      </div>
-      <p class="font-bold text-snow-800"><Ruby text={t('home.underConstruction')} /></p>
-      <p class="text-balance-ja mx-auto mt-2 max-w-md text-sm text-snow-500">
-        <Ruby text={t('home.underConstructionBody')} />
-      </p>
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <h2 class="text-2xl sm:text-3xl">
+        <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-hanabi-500 align-middle sm:h-7"></span>
+        <Ruby text={t('events.title')} />
+      </h2>
+      <a href={localizePath('/events', locale)}
+        class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-brand-700 ring-1 ring-brand-200 ring-inset transition-colors hover:bg-brand-50">
+        <Ruby text={t('common.viewAll')} />
+        <Icon name="arrow-right" class="size-4" />
+      </a>
     </div>
+
+    {
+      events.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => (
+            <EventCard event={event} locale={locale} tags={bundle.tags}
+              organization={findOrganization(bundle, event.organizationId)} />
+          ))}
+        </div>
+      ) : (
+        <p class="rounded-card border border-dashed border-snow-300 bg-white/60 px-6 py-12 text-center text-sm text-snow-500">
+          <Ruby text={t('home.events.empty')} />
+        </p>
+      )
+    }
   </Container>
+
+  {/* 活動の様子。文字だけでは伝わりにくい雰囲気を写真で見せる */}
+  <div class="bg-white py-16 sm:py-20">
+    <Container>
+      <div class="mb-8 max-w-2xl">
+        <h2 class="text-2xl sm:text-3xl">
+          <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-hanabi-500 align-middle sm:h-7"></span>
+          <Ruby text={t('home.photos.title')} />
+        </h2>
+        <p class="text-balance-ja mt-3 text-snow-600"><Ruby text={t('home.photos.lead')} /></p>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        {
+          [SITE_PHOTOS.activityCircle, SITE_PHOTOS.activityGame].map((photo) => (
+            <figure class="min-w-0 overflow-hidden rounded-card bg-snow-100">
+              <Image
+                src={photo.image}
+                alt={resolveText(photo.alt, locale).text}
+                widths={[400, 800, 1200]}
+                sizes="(min-width: 640px) 50vw, 100vw"
+                loading="lazy"
+                class="aspect-4/3 w-full object-cover"
+              />
+            </figure>
+          ))
+        }
+      </div>
+    </Container>
+  </div>
+
+  {/* 最近の活動報告 */}
+  {
+    reports.length > 0 && (
+      <Container class="py-16 sm:py-20">
+        <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <h2 class="text-2xl sm:text-3xl">
+            <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-hanabi-500 align-middle sm:h-7" />
+            <Ruby text={t('home.reports.title')} />
+          </h2>
+          <a href={localizePath('/reports', locale)}
+            class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-brand-700 ring-1 ring-brand-200 ring-inset transition-colors hover:bg-brand-50">
+            <Ruby text={t('common.viewAll')} />
+            <Icon name="arrow-right" class="size-4" />
+          </a>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {reports.map((report) => (
+            <ReportCard report={report} locale={locale} tags={bundle.tags}
+              organization={findOrganization(bundle, report.organizationId)} />
+          ))}
+        </div>
+      </Container>
+    )
+  }
+
+  {/* 参加している団体 */}
+  {
+    bundle.organizations.length > 0 && (
+      <div class="bg-white py-16 sm:py-20">
+        <Container>
+          <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <h2 class="text-2xl sm:text-3xl">
+              <span class="mr-3 inline-block h-6 w-1 translate-y-0.5 rounded-full bg-hanabi-500 align-middle sm:h-7" />
+              <Ruby text={t('home.orgs.title')} />
+            </h2>
+            <a href={localizePath('/organizations', locale)}
+              class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-brand-700 ring-1 ring-brand-200 ring-inset transition-colors hover:bg-brand-50">
+              <Ruby text={t('common.viewAll')} />
+              <Icon name="arrow-right" class="size-4" />
+            </a>
+          </div>
+          <div class:list={['grid gap-6 sm:grid-cols-2', bundle.organizations.length > 2 && 'lg:grid-cols-3']}>
+            {bundle.organizations.map((organization) => (
+              <OrganizationCard organization={organization} locale={locale}
+                counts={countsOf(organization.id)} />
+            ))}
+          </div>
+        </Container>
+      </div>
+    )
+  }
 
   <div class="bg-brand-50 py-16 sm:py-20">
     <Container>

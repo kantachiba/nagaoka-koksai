@@ -56,9 +56,9 @@
   "home.pickup.lead": "Hand-picked events that are easy to join.",
   "home.upcoming.title": "Upcoming events",
   "home.upcoming.lead": "Listed by date, soonest first.",
-  "home.reports.title": "Activity reports",
+  "home.reports.title": "Recent activity reports",
   "home.reports.lead": "A look back at exchange activities around the city.",
-  "home.orgs.title": "Groups in Nagaoka",
+  "home.orgs.title": "Groups taking part",
   "home.orgs.lead": "Groups working on international exchange in Nagaoka. Visitors are welcome.",
   "home.guide.title": "New here?",
   "home.guide.lead": "Three steps to find the right place for you.",
@@ -176,5 +176,8 @@
   "org.philosophy": "What they stand for",
   "org.links": "Links",
   "org.eventsAndReports": "Events and reports from this group",
-  "org.noReports": "No activity reports yet"
+  "org.noReports": "No activity reports yet",
+  "home.photos.title": "What it looks like",
+  "home.photos.lead": "Moments from international exchange in Nagaoka.",
+  "home.events.empty": "No upcoming events yet"
 }

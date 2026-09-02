@@ -15,6 +15,8 @@ import Container from '../components/ui/Container.astro'
 import Icon from '../components/ui/Icon.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
+import { getImage } from 'astro:assets'
+import { SITE_PHOTOS } from '../assets/photos'
 
 /**
  * 全ページ共通の外枠。<head> のメタ情報もここで組み立てる。
@@ -52,7 +54,19 @@ const absolute = (p: string) => new URL(p, SITE_URL).href
 /** 各言語版は独立したページなので、canonical は自分自身を指す */
 const canonical = absolute(localizePath(path, locale))
 
-const ogImageUrl = ogImage ?? absolute('/og-default.png')
+/**
+ * OGP の既定画像。SNS のカードは 1200x630 が基準なので、
+ * 集合写真からその比率で切り出したものをビルド時に生成する。
+ */
+const ogFallback = await getImage({
+  src: SITE_PHOTOS.groupWide.image,
+  width: 1200,
+  height: 630,
+  format: 'jpeg',
+  fit: 'cover',
+})
+
+const ogImageUrl = ogImage ?? absolute(ogFallback.src)
 ---
 
 <!doctype html>

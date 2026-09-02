@@ -56,9 +56,9 @@
   "home.pickup.lead": "今おすすめしたい、参加しやすいイベントを紹介します。",
   "home.upcoming.title": "これからのイベント",
   "home.upcoming.lead": "開催日が近い順に並べています。",
-  "home.reports.title": "活動報告",
+  "home.reports.title": "最近の活動報告",
   "home.reports.lead": "市内でおこなわれた交流のようすをお届けします。",
-  "home.orgs.title": "活動している団体",
+  "home.orgs.title": "参加している団体",
   "home.orgs.lead": "長岡市内で国際交流に取り組む団体です。見学・参加を歓迎しています。",
   "home.guide.title": "はじめての方へ",
   "home.guide.lead": "3つのステップで、あなたに合った交流の場が見つかります。",
@@ -176,5 +176,8 @@
   "org.philosophy": "理念",
   "org.links": "リンク",
   "org.eventsAndReports": "この団体のイベントと活動報告",
-  "org.noReports": "まだ活動報告はありません"
+  "org.noReports": "まだ活動報告はありません",
+  "home.photos.title": "活動の様子",
+  "home.photos.lead": "長岡でおこなわれている国際交流の一場面です。",
+  "home.events.empty": "これから開催されるイベントはまだありません"
 }
