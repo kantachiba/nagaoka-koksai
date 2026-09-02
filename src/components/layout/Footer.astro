@@ -6,7 +6,6 @@ import Container from '../ui/Container.astro'
 import Icon from '../ui/Icon.astro'
 import LanguageSwitcher from '../LanguageSwitcher.astro'
 import Ruby from '../Ruby.astro'
-import Logo from './Logo.astro'
 
 /**
  * ページ下端の緑帯（DESIGN.md の Footer Background）。
@@ -35,10 +34,7 @@ const siteName = resolveText(SITE_NAME, locale).text
   <Container class="py-12 sm:py-16">
     <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
       <div class="lg:col-span-2">
-        <div class="flex items-center gap-3">
-          <Logo class="size-11 shrink-0" />
-          <span class="text-balance-ja text-xl font-extrabold"><Ruby text={siteName} /></span>
-        </div>
+        <p class="text-balance-ja text-xl font-extrabold"><Ruby text={siteName} /></p>
         <p class="text-balance-ja mt-4 max-w-md leading-relaxed">
           <Ruby text={t('footer.aboutBody')} />
         </p>

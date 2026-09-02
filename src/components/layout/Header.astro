@@ -6,7 +6,6 @@ import Container from '../ui/Container.astro'
 import Icon from '../ui/Icon.astro'
 import LanguageSwitcher from '../LanguageSwitcher.astro'
 import Ruby from '../Ruby.astro'
-import Logo from './Logo.astro'
 
 interface Props {
   locale: Locale
@@ -30,9 +29,8 @@ const siteName = resolveText(SITE_NAME, locale).text
     <div class="flex h-16 items-center justify-between gap-4 sm:h-18">
       <a
         href={localizePath('/', locale)}
-        class="flex min-w-0 items-center gap-2.5 rounded-card py-1 transition-opacity hover:opacity-80"
+        class="flex min-w-0 items-center rounded-card py-1 transition-opacity hover:opacity-80"
       >
-        <Logo class="size-9 shrink-0" />
         <span class="text-balance-ja min-w-0 text-sm font-bold text-charcoal sm:text-base">
           <Ruby text={siteName} />
         </span>
