@@ -4,7 +4,8 @@ rules_version = '2';
 //
 // 役割は3段階
 //   運営（admin） … admins/{uid} が存在する。全コンテンツを編集でき、招待を発行できる。
-//                    付与はコンソールからのみ（クライアントからは一切書けない）。
+//                    最初の1人はコンソールで作る。2人目以降は運営が発行した
+//                    role='admin' の招待からのみ登録できる。
 //   編集者（editor）… editors/{uid} が存在する。招待コード経由で自分で登録する。
 //                    自分の団体の活動報告・イベント・団体情報だけを編集できる。
 //   閲覧者         … 公開済みコンテンツを読めるだけ。
@@ -57,13 +58,44 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/invites/$(code)).data;
     }
 
+    /** 招待が示す役割。role を持たない発行済みの招待は編集者として扱う */
+    function inviteRole(code) {
+      return invite(code).get('role', 'editor');
+    }
+
+    /** その招待を実際に消費した本人であること */
+    function claimedInvite(code) {
+      return isSignedIn() && invite(code).usedBy == request.auth.uid;
+    }
+
     // ------------------------------------------------------------ 権限の名簿
 
-    // 運営の名簿。クライアントからは読み取りすら他人のものはできず、書き込みは不可。
+    // 運営の名簿。role='admin' の招待を消費した本人だけが自分の1件を作れる。
+    //
+    // ⚠️ 運営は全コンテンツを操作できるため、この招待は編集者の招待より強い。
+    //    発行できるのは既存の運営だけで、コード自体が鍵になる。
+    //
+    // ⚠️ メール確認（isVerified）は要求していない。招待コードを持つ攻撃者は
+    //    自分のメールアドレスで確認を通せるため防御にならず、一方でコンソールで
+    //    作った最初の運営は未確認のまま締め出されるため。守りはコードの秘匿と
+    //    使い捨て・期限に置いている。
     match /admins/{uid} {
       allow get: if isSignedIn() && request.auth.uid == uid;
-      allow list: if false;
-      allow write: if false;
+      allow list: if isAdmin();
+
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == 'admin'
+        && request.resource.data.keys().hasOnly(['role', 'inviteCode', 'email', 'createdAt'])
+        && request.resource.data.inviteCode is string
+        && request.resource.data.createdAt is timestamp
+        && claimedInvite(request.resource.data.inviteCode)
+        // 編集者の招待で運営に成り上がれないようにする
+        && inviteRole(request.resource.data.inviteCode) == 'admin';
+
+      allow update: if false;
+      // 運営を外すのは運営だけ。全員外してしまってもコンソールから復旧できる。
+      allow delete: if isAdmin();
     }
 
     // 編集者の名簿。招待を消費した本人だけが自分の1件を作れる。
@@ -81,7 +113,9 @@ service cloud.firestore {
         && request.resource.data.inviteCode is string
         && request.resource.data.createdAt is timestamp
         // 実際にその招待を消費した本人であること
-        && invite(request.resource.data.inviteCode).usedBy == request.auth.uid
+        && claimedInvite(request.resource.data.inviteCode)
+        // 運営の招待を編集者の登録に流用させない
+        && inviteRole(request.resource.data.inviteCode) == 'editor'
         // 所属団体は招待に書かれたものから変えられない
         && invite(request.resource.data.inviteCode).organizationId
              == request.resource.data.organizationId;
@@ -96,9 +130,16 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isAdmin();
       allow create: if isAdmin()
-        && request.resource.data.organizationId is string
         && request.resource.data.expiresAt is timestamp
-        && request.resource.data.usedBy == null;
+        && request.resource.data.usedBy == null
+        && (
+          // 編集者の招待には所属団体が要る
+          (request.resource.data.get('role', 'editor') == 'editor'
+            && request.resource.data.organizationId is string)
+          // 運営の招待は団体に紐づかない
+          || (request.resource.data.role == 'admin'
+            && !('organizationId' in request.resource.data))
+        );
       allow delete: if isAdmin();
 
       allow update: if isAdmin()

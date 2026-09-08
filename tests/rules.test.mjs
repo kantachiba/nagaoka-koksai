@@ -24,6 +24,7 @@ const ORG_B = 'org-b'
 const VALID_CODE = 'AAAA-BBBB-CCCC-DDDD'
 const USED_CODE = 'USED-USED-USED-USED'
 const EXPIRED_CODE = 'EXPI-EXPI-EXPI-EXPI'
+const ADMIN_CODE = 'ADMN-ADMN-ADMN-ADMN'
 
 const future = new Date(Date.now() + 7 * 86_400_000)
 const pastDate = new Date(Date.now() - 86_400_000)
@@ -62,6 +63,10 @@ beforeEach(async () => {
     })
     await setDoc(doc(db, 'invites', EXPIRED_CODE), {
       organizationId: ORG_B, createdBy: ADMIN, createdAt: new Date(), expiresAt: pastDate, usedBy: null,
+    })
+    // 運営の招待（団体には紐づかない）
+    await setDoc(doc(db, 'invites', ADMIN_CODE), {
+      role: 'admin', createdBy: ADMIN, createdAt: new Date(), expiresAt: future, usedBy: null,
     })
   })
 })
@@ -145,7 +150,7 @@ test('編集者は自分の所属団体を後から書き換えられない', as
   await assertFails(updateDoc(doc(verified(EDITOR), 'editors', EDITOR), { organizationId: ORG_B }))
 })
 
-test('admins には誰も書き込めない', async () => {
+test('admins には招待なしでは書き込めない', async () => {
   await assertFails(setDoc(doc(verified(OUTSIDER), 'admins', OUTSIDER), { x: 1 }))
   await assertFails(setDoc(doc(verified(ADMIN), 'admins', OUTSIDER), { x: 1 }))
 })
@@ -242,4 +247,73 @@ test('未認証で下書きを絞ったクエリは拒否される', async () =>
   await assertFails(
     getDocs(query(collection(anon(), 'reports'), where('status', '==', 'draft'))),
   )
+})
+
+// ---------------------------------------------------------------- 運営の招待
+
+test('運営の招待を消費すれば運営として登録できる', async () => {
+  const db = verified(OUTSIDER)
+  await assertSucceeds(updateDoc(doc(db, 'invites', ADMIN_CODE), { usedBy: OUTSIDER, usedAt: new Date() }))
+  await assertSucceeds(setDoc(doc(db, 'admins', OUTSIDER), {
+    role: 'admin', inviteCode: ADMIN_CODE, email: 'new@example.jp', createdAt: new Date(),
+  }))
+})
+
+test('編集者の招待では運営になれない', async () => {
+  const db = verified(OUTSIDER)
+  await updateDoc(doc(db, 'invites', VALID_CODE), { usedBy: OUTSIDER, usedAt: new Date() })
+  await assertFails(setDoc(doc(db, 'admins', OUTSIDER), {
+    role: 'admin', inviteCode: VALID_CODE, email: 'new@example.jp', createdAt: new Date(),
+  }))
+})
+
+test('運営の招待を消費していない人は運営になれない', async () => {
+  await assertFails(setDoc(doc(verified(OUTSIDER), 'admins', OUTSIDER), {
+    role: 'admin', inviteCode: ADMIN_CODE, email: 'new@example.jp', createdAt: new Date(),
+  }))
+})
+
+test('他人が消費した運営の招待に便乗できない', async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), 'invites', ADMIN_CODE), { usedBy: 'someone-else' })
+  })
+  await assertFails(setDoc(doc(verified(OUTSIDER), 'admins', OUTSIDER), {
+    role: 'admin', inviteCode: ADMIN_CODE, email: 'new@example.jp', createdAt: new Date(),
+  }))
+})
+
+test('運営の招待を編集者の登録に流用できない', async () => {
+  const db = verified(OUTSIDER)
+  await updateDoc(doc(db, 'invites', ADMIN_CODE), { usedBy: OUTSIDER, usedAt: new Date() })
+  await assertFails(setDoc(doc(db, 'editors', OUTSIDER), {
+    organizationId: ORG_B, role: 'editor', inviteCode: ADMIN_CODE, createdAt: new Date(),
+  }))
+})
+
+test('運営の招待を発行できるのは運営だけ', async () => {
+  const payload = { role: 'admin', createdBy: 'x', createdAt: new Date(), expiresAt: future, usedBy: null }
+  await assertFails(setDoc(doc(verified(EDITOR), 'invites', 'NEW1-NEW1-NEW1-NEW1'), payload))
+  await assertFails(setDoc(doc(anon(), 'invites', 'NEW2-NEW2-NEW2-NEW2'), payload))
+  await assertSucceeds(setDoc(doc(verified(ADMIN), 'invites', 'NEW3-NEW3-NEW3-NEW3'), payload))
+})
+
+test('運営として登録したあと役割を書き換えられない', async () => {
+  const db = verified(OUTSIDER)
+  await updateDoc(doc(db, 'invites', ADMIN_CODE), { usedBy: OUTSIDER, usedAt: new Date() })
+  await setDoc(doc(db, 'admins', OUTSIDER), {
+    role: 'admin', inviteCode: ADMIN_CODE, email: 'new@example.jp', createdAt: new Date(),
+  })
+  await assertFails(updateDoc(doc(db, 'admins', OUTSIDER), { email: 'other@example.jp' }))
+})
+
+test('運営を外せるのは運営だけ', async () => {
+  await assertFails(deleteDoc(doc(verified(EDITOR), 'admins', ADMIN)))
+  await assertFails(deleteDoc(doc(verified(OUTSIDER), 'admins', ADMIN)))
+  await assertSucceeds(deleteDoc(doc(verified(ADMIN), 'admins', ADMIN)))
+})
+
+test('運営の名簿を一覧できるのは運営だけ', async () => {
+  await assertFails(getDocs(collection(anon(), 'admins')))
+  await assertFails(getDocs(collection(verified(EDITOR), 'admins')))
+  await assertSucceeds(getDocs(collection(verified(ADMIN), 'admins')))
 })

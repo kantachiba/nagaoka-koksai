@@ -3,20 +3,21 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import { claimInvite, lookupInvite, type InviteStatus } from './invites'
+import type { InviteRole } from '../lib/types'
 
 /**
- * 招待コードから編集者として新規登録する画面。
+ * 招待コードから新規登録する画面。運営・団体の編集者のどちらにも使う。
  *
  * 運営が発行したコードを持っている人だけが、自分でアカウントを作れる。
- * どの団体に属するかは招待側で決まっており、本人は選べない
- * （firestore.rules の editors 参照）。
+ * どの役割になるか・どの団体に属するかは招待側で決まっており、本人は選べない
+ * （firestore.rules の admins / editors 参照）。
  */
 
 type Step =
   | { kind: 'checking' }
   | { kind: 'invalid'; status: InviteStatus }
-  | { kind: 'form'; organizationId: string; organizationName: string }
-  | { kind: 'done'; email: string }
+  | { kind: 'form'; role: InviteRole; organizationName: string }
+  | { kind: 'done'; role: InviteRole; email: string }
 
 const MESSAGES: Record<InviteStatus, string> = {
   missing: '招待コードが見つかりません。コードを確認するか、運営にお問い合わせください。',
@@ -39,9 +40,17 @@ export default function JoinApp() {
   async function check(value: string) {
     setStep({ kind: 'checking' })
     const result = await lookupInvite(value)
-    if (result.status !== 'valid' || !result.organizationId) {
+    if (result.status !== 'valid') {
       return setStep({ kind: 'invalid', status: result.status })
     }
+
+    // 運営の招待は団体に紐づかない
+    if (result.role === 'admin') {
+      return setStep({ kind: 'form', role: 'admin', organizationName: '' })
+    }
+
+    if (!result.organizationId) return setStep({ kind: 'invalid', status: 'missing' })
+
     // 団体名を出して「どこに招待されたか」を分かるようにする
     let name = result.organizationId
     try {
@@ -51,7 +60,7 @@ export default function JoinApp() {
     } catch {
       // 団体名が読めなくても登録自体は続けられる
     }
-    setStep({ kind: 'form', organizationId: result.organizationId, organizationName: name })
+    setStep({ kind: 'form', role: 'editor', organizationName: name })
   }
 
   if (step.kind === 'checking') {
@@ -92,7 +101,9 @@ export default function JoinApp() {
         <p className="mt-2 text-sm leading-relaxed text-pencil-gray">
           <span className="font-medium">{step.email}</span> 宛に確認メールを送りました。
           メール内のリンクを開いて、メールアドレスの確認を済ませてください。
-          確認が終わると、活動報告やイベントを登録できるようになります。
+          {step.role === 'admin'
+            ? '確認が終わると、すべての団体の内容を編集できるようになります。'
+            : '確認が終わると、活動報告やイベントを登録できるようになります。'}
         </p>
         <a
           href="/admin"
@@ -104,7 +115,13 @@ export default function JoinApp() {
     )
   }
 
-  return <SignUpForm step={step} code={code} onDone={(email) => setStep({ kind: 'done', email })} />
+  return (
+    <SignUpForm
+      step={step}
+      code={code}
+      onDone={(email) => setStep({ kind: 'done', role: step.role, email })}
+    />
+  )
 }
 
 function SignUpForm({
@@ -112,7 +129,7 @@ function SignUpForm({
   code,
   onDone,
 }: {
-  step: { organizationId: string; organizationName: string }
+  step: { role: InviteRole; organizationName: string }
   code: string
   onDone: (email: string) => void
 }) {
@@ -144,13 +161,22 @@ function SignUpForm({
 
   return (
     <form onSubmit={(event) => { event.preventDefault(); void submit() }} className="mx-auto max-w-md rounded-card bg-white p-6 border-2 border-faded-gray">
-      <h2 className="text-lg font-bold">編集者として登録</h2>
+      <h2 className="text-lg font-bold">
+        {step.role === 'admin' ? '運営として登録' : '編集者として登録'}
+      </h2>
       <p className="mt-2 rounded-card bg-storybook-green px-3 py-2 text-sm text-charcoal">
-        <span className="font-bold">{step.organizationName}</span> の編集者として登録します。
+        {step.role === 'admin' ? (
+          <span className="font-bold">サイトの運営として登録します。</span>
+        ) : (
+          <>
+            <span className="font-bold">{step.organizationName}</span> の編集者として登録します。
+          </>
+        )}
       </p>
       <p className="mt-3 text-sm leading-relaxed text-pencil-gray">
-        登録すると、この団体の活動報告・イベント・団体情報を編集できるようになります。
-        ほかの団体の内容は編集できません。
+        {step.role === 'admin'
+          ? '登録すると、すべての団体の活動報告・イベント・団体情報を編集でき、ほかのメンバーを招待できるようになります。'
+          : '登録すると、この団体の活動報告・イベント・団体情報を編集できるようになります。ほかの団体の内容は編集できません。'}
       </p>
 
       <label className="mt-5 block text-xs font-bold text-pencil-gray" htmlFor="join-email">

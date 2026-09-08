@@ -10,7 +10,7 @@ import {
   Timestamp,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { Invite } from '../lib/types'
+import type { Invite, InviteRole } from '../lib/types'
 
 /**
  * 招待コードの発行と消費。
@@ -42,34 +42,41 @@ export function generateInviteCode(): string {
   ].join('-')
 }
 
-/** 招待URL。運営はこれをそのまま編集者に送る */
+/** 招待URL。運営はこれをそのまま相手に送る */
 export const inviteUrl = (code: string, origin: string): string =>
   `${origin}/admin/join?code=${encodeURIComponent(code)}`
 
 export async function createInvite(options: {
-  organizationId: string
+  role: InviteRole
+  /** 編集者の招待では必須。運営の招待では使わない */
+  organizationId?: string
   createdBy: string
   /** 有効日数 */
   days: number
   note?: string
 }): Promise<Invite> {
+  if (options.role === 'editor' && !options.organizationId) {
+    throw new Error('編集者の招待には団体が必要です')
+  }
+
   const code = generateInviteCode()
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + options.days)
 
-  const payload = {
-    organizationId: options.organizationId,
+  await setDoc(doc(db(), 'invites', code), {
+    role: options.role,
+    // 運営の招待に organizationId を混ぜるとルール側で弾かれる
+    ...(options.role === 'editor' ? { organizationId: options.organizationId } : {}),
     createdBy: options.createdBy,
     createdAt: serverTimestamp(),
     expiresAt: Timestamp.fromDate(expiresAt),
     usedBy: null,
     ...(options.note ? { note: options.note } : {}),
-  }
-
-  await setDoc(doc(db(), 'invites', code), payload)
+  })
 
   return {
     id: code,
+    role: options.role,
     organizationId: options.organizationId,
     createdBy: options.createdBy,
     createdAt: new Date().toISOString(),
@@ -78,6 +85,9 @@ export async function createInvite(options: {
     note: options.note,
   }
 }
+
+/** role を持たない古い招待は編集者として扱う */
+const toRole = (value: unknown): InviteRole => (value === 'admin' ? 'admin' : 'editor')
 
 const toIso = (value: unknown): string =>
   value instanceof Timestamp ? value.toDate().toISOString() : String(value ?? '')
@@ -89,7 +99,8 @@ export async function listInvites(): Promise<Invite[]> {
       const data = row.data()
       return {
         id: row.id,
-        organizationId: String(data.organizationId ?? ''),
+        role: toRole(data.role),
+        organizationId: data.organizationId ? String(data.organizationId) : undefined,
         createdBy: String(data.createdBy ?? ''),
         createdAt: toIso(data.createdAt),
         expiresAt: toIso(data.expiresAt),
@@ -107,10 +118,11 @@ export type InviteStatus = 'valid' | 'used' | 'expired' | 'missing'
 
 export type InviteLookup = {
   status: InviteStatus
+  role?: InviteRole
   organizationId?: string
 }
 
-/** 招待コードの状態を調べる。サインアップ前に団体名を見せるため未認証でも引ける */
+/** 招待コードの状態を調べる。サインアップ前に招待の内容を見せるため未認証でも引ける */
 export async function lookupInvite(code: string): Promise<InviteLookup> {
   const snapshot = await getDoc(doc(db(), 'invites', code.trim().toUpperCase()))
   if (!snapshot.exists()) return { status: 'missing' }
@@ -121,16 +133,24 @@ export async function lookupInvite(code: string): Promise<InviteLookup> {
   const expiresAt = data.expiresAt instanceof Timestamp ? data.expiresAt.toDate() : null
   if (!expiresAt || expiresAt.getTime() < Date.now()) return { status: 'expired' }
 
-  return { status: 'valid', organizationId: String(data.organizationId ?? '') }
+  const role = toRole(data.role)
+  return {
+    status: 'valid',
+    role,
+    organizationId: role === 'editor' ? String(data.organizationId ?? '') : undefined,
+  }
 }
 
 /**
- * 招待を消費して編集者として登録する。
+ * 招待を消費して、運営または編集者として登録する。
  *
  * 1. invites の usedBy に自分の UID を書く（未使用・期限内のときだけルールが通す）
- * 2. editors に自分の1件を作る（1 の結果とルール側で突き合わせられる）
+ * 2. admins / editors に自分の1件を作る（1 の結果とルール側で突き合わせられる）
  *
  * 2 が失敗しても 1 は残るため、その招待は使えなくなる。運営が発行し直す。
+ *
+ * どちらの名簿に入るかは招待の role で決まる。ここで役割を偽っても、
+ * ルール側が招待の role と突き合わせるため通らない（firestore.rules）。
  */
 export async function claimInvite(params: {
   code: string
@@ -142,11 +162,20 @@ export async function claimInvite(params: {
 
   await updateDoc(inviteRef, { usedBy: params.uid, usedAt: serverTimestamp() })
 
-  const snapshot = await getDoc(inviteRef)
-  const organizationId = String(snapshot.data()?.organizationId ?? '')
+  const data = (await getDoc(inviteRef)).data()
+
+  if (toRole(data?.role) === 'admin') {
+    await setDoc(doc(db(), 'admins', params.uid), {
+      role: 'admin',
+      inviteCode: code,
+      email: params.email,
+      createdAt: serverTimestamp(),
+    })
+    return
+  }
 
   await setDoc(doc(db(), 'editors', params.uid), {
-    organizationId,
+    organizationId: String(data?.organizationId ?? ''),
     role: 'editor',
     inviteCode: code,
     email: params.email,

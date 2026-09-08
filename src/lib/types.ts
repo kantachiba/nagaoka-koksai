@@ -180,10 +180,16 @@ export type Photo = {
  * 編集者は /admin/join?code=... から自分でアカウントを作り、
  * この招待を1回だけ消費して editors に登録される。
  */
+/** 招待が与える役割 */
+export type InviteRole = 'editor' | 'admin'
+
 export type Invite = {
   /** = 招待コード */
   id: string
-  organizationId: string
+  /** 与える役割。role を持たない発行済みの招待は編集者として扱う */
+  role: InviteRole
+  /** 編集者の招待のみ。運営の招待は団体に紐づかない */
+  organizationId?: string
   /** 発行者のUID */
   createdBy: string
   createdAt: string
