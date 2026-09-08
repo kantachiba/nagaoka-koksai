@@ -14,6 +14,20 @@ import type { Invite, InviteRole } from '../lib/types'
  * 取り違えないよう、役割の選択と発行後の表示で区別している。
  */
 
+/**
+ * Firestore の失敗理由を、運営が次の一手を打てる日本語にする。
+ * とくに permission-denied は「ルールが本番に配られていない」ことが多いので、
+ * その場で分かるようにしておく。
+ */
+function describe(error: unknown, fallback: string): string {
+  const code = (error as { code?: string })?.code ?? ''
+  if (code === 'permission-denied') {
+    return 'Firestore に拒否されました。firebase deploy --only firestore:rules でルールを本番へ反映してください。'
+  }
+  if (code === 'unavailable') return 'Firestore に接続できませんでした。通信状況を確認してください。'
+  return code ? `${fallback}（${code}）` : fallback
+}
+
 type Org = { id: string; name: string }
 type Admin = { uid: string; email: string }
 
@@ -50,8 +64,8 @@ export default function InvitePanel({ uid }: { uid: string }) {
           email: String(row.data().email ?? row.id),
         })),
       )
-    } catch {
-      setError('団体または招待の一覧を取得できませんでした。')
+    } catch (e) {
+      setError(describe(e, '団体または招待の一覧を取得できませんでした。'))
     }
   }
 
@@ -75,8 +89,8 @@ export default function InvitePanel({ uid }: { uid: string }) {
       setIssued(invite)
       setNote('')
       setInvites(await listInvites())
-    } catch {
-      setError('招待を発行できませんでした。')
+    } catch (e) {
+      setError(describe(e, '招待を発行できませんでした。'))
     } finally {
       setBusy(false)
     }
@@ -93,8 +107,8 @@ export default function InvitePanel({ uid }: { uid: string }) {
     try {
       await deleteDoc(doc(db(), 'admins', target.uid))
       await refresh()
-    } catch {
-      setError('運営を外せませんでした。')
+    } catch (e) {
+      setError(describe(e, '運営を外せませんでした。'))
     }
   }
 
