@@ -1,0 +1,122 @@
+---
+import { localizePath, useTranslations, type Locale } from '../i18n'
+import { dateParts, formatDate } from '../lib/date'
+import { dateOf, getEventStatus, timeOf } from '../lib/event-helpers'
+import type { EventItem, Organization } from '../lib/types'
+import Badge from './ui/Badge.astro'
+import Icon from './ui/Icon.astro'
+import LocalizedTextView from './LocalizedText.astro'
+import Ruby from './Ruby.astro'
+
+/**
+ * ホームのイベントスケジュール。開催日ごとにまとめた予定表。
+ *
+ * カードの一覧より「いつ・どこで・何が」を一目で追えるよう、
+ * 左に日付、右にその日の予定を時刻順に並べている。
+ * 静的サイトなので「これから」の判定はビルド時点（30分ごとに再ビルド）。
+ */
+interface Props {
+  /** 開催日の早い順に並んだ、これからのイベント */
+  events: EventItem[]
+  locale: Locale
+  organizations: Organization[]
+}
+
+const { events, locale, organizations } = Astro.props
+const t = useTranslations(locale)
+
+/** 開始日ごとにまとめる（複数日のイベントは開始日に置く） */
+const days = [...events.reduce((map, event) => {
+  const key = dateOf(event.startAt)
+  map.set(key, [...(map.get(key) ?? []), event])
+  return map
+}, new Map<string, EventItem[]>())].map(([date, list]) => ({ date, events: list }))
+
+const orgOf = (id: string) => organizations.find((org) => org.id === id)
+---
+
+<ol class="divide-y-2 divide-faded-gray overflow-hidden rounded-card border-2 border-faded-gray bg-paper-white">
+  {
+    days.map(({ date, events: dayEvents }) => {
+      const parts = dateParts(date, locale)
+      return (
+        <li class="grid gap-4 p-4 sm:grid-cols-[6rem_1fr] sm:gap-6 sm:p-6">
+          {/* 日付。スマホでは横並びの見出し、広い画面では左の柱になる */}
+          <time
+            datetime={date}
+            class="flex items-baseline gap-2 sm:flex-col sm:items-center sm:gap-0 sm:text-center"
+          >
+            <span class="text-sm font-bold text-green-text">{parts.month}</span>
+            <span class="text-3xl leading-none font-extrabold text-charcoal tabular-nums sm:text-4xl">
+              {parts.day}
+            </span>
+            <span class="text-sm font-bold text-pencil-gray">
+              <span aria-hidden="true">(</span>{parts.weekday}<span aria-hidden="true">)</span>
+            </span>
+          </time>
+
+          <ul class="min-w-0 space-y-3">
+            {dayEvents.map((event) => {
+              const status = getEventStatus(event)
+              const organization = orgOf(event.organizationId)
+              const endDate = dateOf(event.endAt)
+              const multiDay = endDate !== date
+              return (
+                <li class="min-w-0">
+                  <a
+                    href={localizePath(`/events/${event.slug}`, locale)}
+                    class="group flex min-w-0 flex-col gap-2 rounded-card border-2 border-transparent p-3 transition-colors hover:border-eager-green hover:bg-storybook-green/40 sm:flex-row sm:items-start sm:gap-5"
+                  >
+                    <p class="flex shrink-0 items-center gap-1.5 text-sm font-bold text-blue-text tabular-nums sm:w-28">
+                      <Icon name="clock" class="size-4" />
+                      <span>{timeOf(event.startAt)}〜{multiDay ? '' : timeOf(event.endAt)}</span>
+                    </p>
+
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <Badge tone={status.tone}><Ruby text={t(status.key)} /></Badge>
+                        {event.isFree && <Badge tone="emerald"><Ruby text={t('common.free')} /></Badge>}
+                      </div>
+
+                      <h3 class="text-balance-ja mt-1.5 text-lg leading-snug font-bold text-charcoal group-hover:text-blue-text">
+                        <LocalizedTextView field={event.title} locale={locale} notice={false} />
+                      </h3>
+
+                      <dl class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-pencil-gray">
+                        {multiDay && (
+                          <div class="flex items-center gap-1.5">
+                            <dt class="sr-only">{t('event.time')}</dt>
+                            <Icon name="calendar" class="size-4" />
+                            <dd>〜<Ruby text={formatDate(endDate, locale, { year: false })} /></dd>
+                          </div>
+                        )}
+                        <div class="flex min-w-0 items-center gap-1.5">
+                          <dt class="sr-only">{t('event.venue')}</dt>
+                          <Icon name="map-pin" class="size-4 shrink-0" />
+                          <dd class="min-w-0 truncate">
+                            <LocalizedTextView field={event.venue} locale={locale} notice={false} />
+                          </dd>
+                        </div>
+                        {organization && (
+                          <div class="flex min-w-0 items-center gap-1.5">
+                            <dt class="sr-only">{t('event.organizer')}</dt>
+                            <Icon name="building" class="size-4 shrink-0" />
+                            <dd class="min-w-0 truncate">
+                              <LocalizedTextView field={organization.shortName} locale={locale} notice={false} />
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+
+                    <Icon name="arrow-right" class="hidden size-5 shrink-0 self-center text-faded-gray group-hover:text-green-text sm:block" />
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </li>
+      )
+    })
+  }
+</ol>

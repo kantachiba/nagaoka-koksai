@@ -4,7 +4,7 @@ import { resolveText } from '../../i18n/text'
 import { SITE_DESCRIPTION } from '../../config/site'
 import { findOrganization, getContent, listableEvents } from '../../lib/content'
 import { upcoming } from '../../lib/event-helpers'
-import EventCard from '../../components/EventCard.astro'
+import EventSchedule from '../../components/EventSchedule.astro'
 import ReportCard from '../../components/ReportCard.astro'
 import OrganizationCard from '../../components/OrganizationCard.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
@@ -25,7 +25,10 @@ const t = useTranslations(locale)
 const heroLines = t('home.hero.title').split('\n')
 
 const bundle = await getContent()
-const events = upcoming(listableEvents(bundle)).slice(0, 3)
+/** ホームのスケジュールに出す件数。それ以上はイベント一覧で見てもらう */
+const SCHEDULE_LIMIT = 8
+const allUpcoming = upcoming(listableEvents(bundle))
+const events = allUpcoming.slice(0, SCHEDULE_LIMIT)
 const reports = [...bundle.reports].sort((a, b) => b.heldOn.localeCompare(a.heldOn)).slice(0, 3)
 
 /** 団体カードに出す件数 */
@@ -88,15 +91,16 @@ const GUIDE: Array<{ icon: IconName; titleKey: UiKey; bodyKey: UiKey }> = [
   </section>
 
 
-  {/* Phase 1 で microCMS を接続すると、ここに直近イベント・活動報告・団体が並ぶ */}
-  {/* 直近のイベント。まだ登録が無いときは、その旨だけ静かに出す */}
+  {/* イベントのスケジュール。開催日ごとの予定表で、直近の予定を一目で追えるようにする */}
   <Container class="py-16 sm:py-20">
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-      <h2 class="section-title">
-        <Ruby text={t('events.title')} />
-      </h2>
-      <a href={localizePath('/events', locale)}
-        class="btn-outline btn-sm">
+      <div class="min-w-0">
+        <h2 class="section-title">
+          <Ruby text={t('home.upcoming.title')} />
+        </h2>
+        <p class="text-balance-ja mt-3 text-pencil-gray"><Ruby text={t('home.upcoming.lead')} /></p>
+      </div>
+      <a href={localizePath('/events', locale)} class="btn-outline btn-sm">
         <Ruby text={t('common.viewAll')} />
         <Icon name="arrow-right" class="size-4" />
       </a>
@@ -104,14 +108,18 @@ const GUIDE: Array<{ icon: IconName; titleKey: UiKey; bodyKey: UiKey }> = [
 
     {
       events.length > 0 ? (
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <EventCard event={event} locale={locale} tags={bundle.tags}
-              organization={findOrganization(bundle, event.organizationId)} />
-          ))}
-        </div>
+        <>
+          <EventSchedule events={events} locale={locale} organizations={bundle.organizations} />
+          {allUpcoming.length > events.length && (
+            <p class="mt-4 text-right">
+              <a href={localizePath('/events', locale)} class="text-sm font-bold text-blue-text underline-offset-4 hover:underline">
+                <Ruby text={t('common.viewAll')} /> ({allUpcoming.length})
+              </a>
+            </p>
+          )}
+        </>
       ) : (
-        <p class="rounded-card border border-dashed border-faded-gray bg-white/60 px-6 py-12 text-center text-sm text-pencil-gray">
+        <p class="rounded-card border-2 border-dashed border-faded-gray bg-paper-white px-6 py-12 text-center text-sm text-pencil-gray">
           <Ruby text={t('home.events.empty')} />
         </p>
       )
