@@ -8,12 +8,12 @@ import type { LocalizedField } from '../i18n/text'
 // ------------------------------------------------------------------ A-6 サイト名
 
 /**
- * ⚠️ サイト名・チーム名は未確定。決まったらこの1か所だけ差し替える。
- *    ロゴ・ページタイトル・OGP はすべてここを参照している。
+ * サイト名。ロゴ・ページタイトル・OGP はすべてここを参照しているので、
+ * 変えるときはこの1か所だけ差し替える。
  */
 export const SITE_NAME: LocalizedField = {
-  ja: 'ながおか国際交流ポータル（仮）',
-  en: 'Nagaoka International Portal (working title)',
+  ja: 'ながおか国際交流ポータル',
+  en: 'Nagaoka International Portal',
 }
 
 export const SITE_DESCRIPTION: LocalizedField = {
@@ -82,7 +82,8 @@ export const LINE_OPEN_CHAT_URL = ''
 // ------------------------------------------------------------------ 公開状態
 
 /**
- * 実データが揃うまでは検索エンジンに登録させない。
- * 公開準備が整ったら false にする。
+ * true にすると全ページに noindex を入れ、検索エンジンに登録させない。
+ * 実データが揃うまでの措置だったので、公開に合わせて false にした。
+ * （/admin は BaseLayout を使わず、各ページで個別に noindex を入れている）
  */
-export const NOINDEX = true
+export const NOINDEX = false

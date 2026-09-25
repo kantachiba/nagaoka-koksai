@@ -1,0 +1,9 @@
+# ながおか国際交流ポータル
+# 公開ページはすべて検索エンジンに開放する。
+# 管理画面は検索対象にしない（各ページに noindex も入れている）。
+
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://nagaoka-kokusai-portal.web.app/sitemap-index.xml

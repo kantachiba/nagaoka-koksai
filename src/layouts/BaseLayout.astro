@@ -11,8 +11,6 @@ import {
 import { resolveText } from '../i18n/text'
 import { stripRuby } from '../lib/ruby'
 import { NOINDEX, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site'
-import Container from '../components/ui/Container.astro'
-import Icon from '../components/ui/Icon.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
 import { getImage } from 'astro:assets'
@@ -126,13 +124,6 @@ const ogImageUrl = ogImage ?? absolute(ogFallback.src)
     >
       {t('nav.skipToContent')}
     </a>
-
-    <div class="bg-eager-green text-paper-white">
-      <Container class="flex items-start gap-3 py-2.5">
-        <Icon name="info" class="mt-0.5 size-4 shrink-0 text-storybook-green" />
-        <p class="text-balance-ja flex-1 text-xs leading-relaxed">{t('notice.prototype')}</p>
-      </Container>
-    </div>
 
     <Header locale={locale} />
 

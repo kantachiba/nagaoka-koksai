@@ -75,14 +75,8 @@ const siteName = resolveText(SITE_NAME, locale).text
       </div>
     </div>
 
-    <div
-      class="mt-10 flex flex-col gap-3 border-t-2 border-night-ink/25 pt-6 text-sm sm:flex-row sm:items-center sm:justify-between"
-    >
+    <div class="mt-10 border-t-2 border-night-ink/25 pt-6 text-sm">
       <p>© {new Date().getFullYear()} Nagaoka International Portal</p>
-      <p class="flex items-center gap-1.5">
-        <Icon name="info" class="size-4" />
-        <Ruby text={t('footer.copyright')} />
-      </p>
     </div>
   </Container>
 </footer>
