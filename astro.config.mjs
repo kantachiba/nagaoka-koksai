@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  // ⚠️ chibanian.com/international-portal で公開している（ドメイン直下は
+  // ⚠️ tibanian.com/international-portal で公開している（ドメイン直下は
   // 別の既存サイトのため、そちらとの共存に Cloudflare Worker のプロキシを
   // 使う。詳細は src/config/site.ts の SITE_URL のコメントと
   // cloudflare/international-portal-proxy.js を参照）。
@@ -15,7 +15,7 @@ export default defineConfig({
   // （localizePath が返すパス）とズレて壊れることを確認した。
   // ビルド成果物は今まで通りルート相対のまま出力し、プレフィックスの付与は
   // Cloudflare Worker 側で一括して行う方針にしている。
-  site: 'https://chibanian.com/international-portal',
+  site: 'https://tibanian.com/international-portal',
 
   // 全ページを静的HTMLとして書き出す。ページごとに OGP を埋められるようにするため。
   output: 'static',

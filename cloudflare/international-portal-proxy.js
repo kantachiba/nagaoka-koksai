@@ -1,11 +1,11 @@
 /**
- * chibanian.com/international-portal を Firebase Hosting へ橋渡しする
+ * tibanian.com/international-portal を Firebase Hosting へ橋渡しする
  * Cloudflare Worker。
  *
- * ドメイン直下（chibanian.com）には既存の別サイトがあるため、この
+ * ドメイン直下（tibanian.com）には既存の別サイトがあるため、この
  * ポータルは Firebase Hosting 上ではルート（/events など、プレフィックス
  * なし）のまま配信している。この Worker が
- *   1. chibanian.com/international-portal/* 宛のリクエストだけを受け取り、
+ *   1. tibanian.com/international-portal/* 宛のリクエストだけを受け取り、
  *   2. プレフィックスを外して Firebase Hosting（nagaoka-kokusai-portal.web.app）
  *      へ転送し、
  *   3. 返ってきた HTML 内のルート相対パス（href / src / srcset）に

@@ -1,7 +1,7 @@
 # ながおか国際交流ポータル
 #
-# ⚠️ このファイルは chibanian.com/international-portal/robots.txt として
-#    配信されるが、robots.txt はドメイン直下（chibanian.com/robots.txt）に
+# ⚠️ このファイルは tibanian.com/international-portal/robots.txt として
+#    配信されるが、robots.txt はドメイン直下（tibanian.com/robots.txt）に
 #    あるものしかクローラーは見に行かない。ドメイン直下は別サイトが管理して
 #    いるため、実際に効力を持たせるには、そちらの robots.txt に
 #    下記と同じ内容（Disallow の対象パスは /international-portal/admin に
@@ -14,4 +14,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://chibanian.com/international-portal/sitemap-index.xml
+Sitemap: https://tibanian.com/international-portal/sitemap-index.xml
