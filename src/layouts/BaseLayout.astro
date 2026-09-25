@@ -10,7 +10,7 @@ import {
 } from '../i18n'
 import { resolveText } from '../i18n/text'
 import { stripRuby } from '../lib/ruby'
-import { NOINDEX, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../config/site'
+import { NOINDEX, SITE_DESCRIPTION, SITE_NAME, absoluteUrl } from '../config/site'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
 import { getImage } from 'astro:assets'
@@ -47,7 +47,9 @@ const metaDescription = stripRuby(
   description ?? resolveText(SITE_DESCRIPTION, locale).text,
 )
 
-const absolute = (p: string) => new URL(p, SITE_URL).href
+// new URL(p, SITE_URL) は使わない。SITE_URL がサブパスを持つため、
+// 先頭 '/' の相対参照だとパス部分ごと消えてしまう（config/site.ts 参照）。
+const absolute = absoluteUrl
 
 /** 各言語版は独立したページなので、canonical は自分自身を指す */
 const canonical = absolute(localizePath(path, locale))

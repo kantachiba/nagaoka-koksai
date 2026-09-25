@@ -1,0 +1,20 @@
+# wrangler CLI でデプロイする場合の設定。
+# ダッシュボードから直接貼り付ける場合は不要（README.md のA案を参照）。
+#
+# 使い方：
+#   cd cloudflare
+#   npx wrangler login
+#   npx wrangler deploy
+
+name = "international-portal-proxy"
+main = "international-portal-proxy.js"
+compatibility_date = "2026-09-01"
+
+# chibanian.com は Cloudflare でゾーンを管理している前提。
+# ルートは「厳密一致」と「配下すべて」の2本を登録する
+# （/international-portal だけだと末尾スラッシュなしの直アクセスが
+# 　ルーティングされない場合があるため）。
+routes = [
+  { pattern = "chibanian.com/international-portal", zone_name = "chibanian.com" },
+  { pattern = "chibanian.com/international-portal/*", zone_name = "chibanian.com" },
+]

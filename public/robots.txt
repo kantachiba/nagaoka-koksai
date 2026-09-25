@@ -1,4 +1,12 @@
 # ながおか国際交流ポータル
+#
+# ⚠️ このファイルは chibanian.com/international-portal/robots.txt として
+#    配信されるが、robots.txt はドメイン直下（chibanian.com/robots.txt）に
+#    あるものしかクローラーは見に行かない。ドメイン直下は別サイトが管理して
+#    いるため、実際に効力を持たせるには、そちらの robots.txt に
+#    下記と同じ内容（Disallow の対象パスは /international-portal/admin に
+#    読み替える）を足してもらう必要がある。
+#
 # 公開ページはすべて検索エンジンに開放する。
 # 管理画面は検索対象にしない（各ページに noindex も入れている）。
 
@@ -6,4 +14,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://nagaoka-kokusai-portal.web.app/sitemap-index.xml
+Sitemap: https://chibanian.com/international-portal/sitemap-index.xml

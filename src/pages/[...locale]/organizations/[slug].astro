@@ -1,5 +1,6 @@
 ---
 import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i18n'
+import { absoluteUrl } from '../../../config/site'
 import { resolveText } from '../../../i18n/text'
 import { stripRuby } from '../../../lib/ruby'
 import { getContent, listableEvents } from '../../../lib/content'
@@ -47,7 +48,7 @@ const philosophy = resolveText(organization.philosophy, locale).text
   path={`/organizations/${organization.slug}`}
   title={name}
   description={stripRuby(philosophy)}
-  ogImage={organization.imageId ? new URL(`/photos/${organization.imageId}.jpg`, Astro.site).href : undefined}
+  ogImage={organization.imageId ? absoluteUrl(`/photos/${organization.imageId}.jpg`) : undefined}
 >
   <Container>
     <nav aria-label={t('common.breadcrumb')} class="py-4">

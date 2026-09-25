@@ -42,9 +42,13 @@ export function generateInviteCode(): string {
   ].join('-')
 }
 
-/** 招待URL。運営はこれをそのまま相手に送る */
-export const inviteUrl = (code: string, origin: string): string =>
-  `${origin}/admin/join?code=${encodeURIComponent(code)}`
+/**
+ * 招待URL。運営はこれをそのまま相手に送る。
+ * base には window.location.origin ではなく SITE_URL を渡すこと
+ * （サブパスで公開しているため、origin だけだとパスが欠ける）。
+ */
+export const inviteUrl = (code: string, base: string): string =>
+  `${base}/admin/join?code=${encodeURIComponent(code)}`
 
 export async function createInvite(options: {
   role: InviteRole

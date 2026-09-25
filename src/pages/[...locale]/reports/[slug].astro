@@ -1,5 +1,6 @@
 ---
 import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i18n'
+import { absoluteUrl } from '../../../config/site'
 import { resolveText } from '../../../i18n/text'
 import { stripRuby } from '../../../lib/ruby'
 import { resolveDoc } from '../../../lib/blocks'
@@ -49,7 +50,7 @@ const cover = report.photos[0]
   path={`/reports/${report.slug}`}
   title={title}
   description={stripRuby(summary)}
-  ogImage={cover ? new URL(`/photos/${cover.photoId}.jpg`, Astro.site).href : undefined}
+  ogImage={cover ? absoluteUrl(`/photos/${cover.photoId}.jpg`) : undefined}
 >
   <Container>
     <nav aria-label={t('common.breadcrumb')} class="py-4">

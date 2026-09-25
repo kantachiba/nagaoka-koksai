@@ -3,6 +3,7 @@ import { collection, deleteDoc, doc, getDocs } from 'firebase/firestore'
 import { db } from './firebase'
 import { createInvite, inviteUrl, listInvites, revokeInvite } from './invites'
 import type { Invite, InviteRole } from '../lib/types'
+import { SITE_URL } from '../config/site'
 
 /**
  * 招待の発行・管理（運営のみ）。
@@ -238,11 +239,11 @@ export default function InvitePanel({ uid }: { uid: string }) {
             {issued.id}
           </p>
           <p className="mt-2 rounded-card bg-white px-3 py-2 text-xs break-all text-pencil-gray">
-            {inviteUrl(issued.id, window.location.origin)}
+            {inviteUrl(issued.id, SITE_URL)}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
-              onClick={() => void copy(inviteUrl(issued.id, window.location.origin))}
+              onClick={() => void copy(inviteUrl(issued.id, SITE_URL))}
               className="rounded-card bg-eager-green px-4 py-2 text-xs font-bold text-white"
             >
               {copied ? 'コピーしました' : '招待URLをコピー'}

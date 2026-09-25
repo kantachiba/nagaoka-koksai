@@ -26,8 +26,29 @@ export const SITE_DESCRIPTION: LocalizedField = {
 /** Firestore / Auth / Storage を置いている Firebase プロジェクト */
 export const FIREBASE_PROJECT_ID = 'nagaoka-kokusai-portal'
 
-/** 本番URL。OGP と sitemap の絶対URL生成に使う */
-export const SITE_URL = 'https://nagaoka-kokusai-portal.web.app'
+/**
+ * 本番URL。OGP と sitemap の絶対URL生成に使う。
+ *
+ * ⚠️ chibanian.com のサブパスで公開しているため、末尾にパスが付く。
+ *    Firebase Hosting 自体はこのパスを知らず、ルート（/events など）で
+ *    配信している。ドメイン直下には既存の個人サイトがあるため、
+ *    Cloudflare Worker が chibanian.com/international-portal/* を
+ *    Firebase Hosting へプロキシし、HTML内の相対パスにこのプレフィックスを
+ *    付け直している（cloudflare/international-portal-proxy.js）。
+ *    パスを含むぶん、素の `new URL(p, SITE_URL)` は使わないこと
+ *    （先頭が '/' の相対参照は WHATWG URL 仕様でパス部分を丸ごと
+ *    上書きしてしまい、このパスが消える）。絶対URLは必ず absoluteUrl() で作る。
+ */
+export const SITE_URL = 'https://chibanian.com/international-portal'
+
+/**
+ * ルート相対パスを、このサイトの絶対URLにする。
+ * `new URL(p, SITE_URL)` は SITE_URL 側のパス部分を消してしまうため使わない。
+ */
+export function absoluteUrl(path: string): string {
+  const p = path.startsWith('/') ? path : `/${path}`
+  return p === '/' ? SITE_URL : `${SITE_URL}${p}`
+}
 
 /** ロゴ画像を用意したらここにパスを入れる。空ならシンボルマークを描画する */
 export const SITE_LOGO_PATH = ''
