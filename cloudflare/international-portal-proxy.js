@@ -69,6 +69,8 @@ const rewriter = new HTMLRewriter()
   .on('img[srcset]', new SrcsetRewriter())
   .on('source[srcset]', new SrcsetRewriter())
   .on('form[action]', new AttributeRewriter('action'))
+  .on('astro-island[component-url]', new AttributeRewriter('component-url'))
+  .on('astro-island[renderer-url]', new AttributeRewriter('renderer-url'))
 
 export default {
   async fetch(request) {

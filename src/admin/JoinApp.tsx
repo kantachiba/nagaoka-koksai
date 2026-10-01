@@ -3,6 +3,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import { claimInvite, lookupInvite, type InviteStatus } from './invites'
+import { adminHref } from './paths'
 import type { InviteRole } from '../lib/types'
 
 /**
@@ -106,7 +107,7 @@ export default function JoinApp() {
             : '確認が終わると、活動報告やイベントを登録できるようになります。'}
         </p>
         <a
-          href="/admin"
+          href={adminHref('/admin')}
           className="mt-5 inline-block rounded-card bg-eager-green px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-eager-green"
         >
           管理画面へ

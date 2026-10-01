@@ -12,6 +12,7 @@ import { seedInitialData, type SeedResult } from './seed'
 import InvitePanel from './InvitePanel'
 import ReportEditor from './ReportEditor'
 import OrganizationEditor from './OrganizationEditor'
+import { adminHref } from './paths'
 
 /**
  * 管理画面。運営メンバーと、招待を受けた団体の編集者が使う。
@@ -112,7 +113,7 @@ function SignIn() {
       </button>
 
       <p className="mt-5 border-t border-faded-gray pt-4 text-xs leading-relaxed text-pencil-gray">
-        招待コードをお持ちの方は<a href="/admin/join" className="font-bold text-blue-text hover:underline">こちらから登録</a>してください。
+        招待コードをお持ちの方は<a href={adminHref('/admin/join')} className="font-bold text-blue-text hover:underline">こちらから登録</a>してください。
       </p>
     </form>
   )
@@ -175,7 +176,7 @@ function NoRole({ user }: { user: User }) {
       <h2 className="text-lg font-bold">編集権限がありません</h2>
       <p className="mt-2 text-sm leading-relaxed text-pencil-gray">
         招待コードをお持ちの場合は
-        <a href="/admin/join" className="font-bold text-blue-text hover:underline">登録ページ</a>
+        <a href={adminHref('/admin/join')} className="font-bold text-blue-text hover:underline">登録ページ</a>
         からお進みください。運営メンバーの方は、Firebase コンソールの Firestore で
         <code className="mx-1 rounded bg-paper-white px-1">admins</code>
         コレクションに下のUIDを追加してください。

@@ -6,7 +6,9 @@
 #   npx wrangler login
 #   npx wrangler deploy
 
-name = "international-portal-proxy"
+# ダッシュボードで最初に作ったときの自動命名。ルートがこの Worker に
+# 割り当て済みなので、別名にすると deploy がルートの競合で失敗する。
+name = "autumn-sky-fb61"
 main = "international-portal-proxy.js"
 compatibility_date = "2026-09-01"
 
