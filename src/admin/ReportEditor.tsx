@@ -10,9 +10,9 @@ import {
 import { db } from './firebase'
 import LocalizedInput from './fields/LocalizedInput'
 import PhotoInput, { type PhotoEntry } from './fields/PhotoInput'
+import BodyInput, { normalizeStoredBody } from './fields/BodyInput'
 import type { LocalizedField } from '../i18n/text'
-import BlockEditor from './BlockEditor'
-import { emptyDoc, prepareBodyForSave, type LocalizedDoc, type RichDoc } from '../lib/blocks'
+import { emptyDoc, prepareBodyForSave, type LocalizedDoc } from '../lib/blocks'
 
 /**
  * 活動報告の編集。
@@ -25,6 +25,7 @@ type Scope = { kind: 'admin' } | { kind: 'editor'; organizationId: string }
 
 type Org = { id: string; name: string }
 type Tag = { id: string; name: string }
+type EventOption = { id: string; title: string; date: string; organizationId: string }
 
 type Draft = {
   id: string
@@ -37,33 +38,13 @@ type Draft = {
   publishedAt: string
   participants: string
   tagIds: string[]
+  /** 空なら関連イベントなし */
+  relatedEventId: string
   photos: PhotoEntry[]
   status: 'draft' | 'published'
 }
 
 const emptyField = (): LocalizedField => ({ ja: '', en: '' })
-
-/** 旧形式（段落の配列）で保存された記事も編集できるように読み替える */
-function normalizeStoredBody(raw: unknown): LocalizedDoc {
-  if (Array.isArray(raw)) {
-    const paragraphs = raw as LocalizedField[]
-    const build = (locale: 'ja' | 'en'): RichDoc => ({
-      type: 'doc',
-      content: paragraphs
-        .map((paragraph) => paragraph[locale] ?? paragraph.ja ?? '')
-        .filter((text) => text.trim())
-        .map((text) => ({ type: 'paragraph', content: [{ type: 'text', text }] })),
-    })
-    return { ja: build('ja'), en: build('en') }
-  }
-  if (raw && typeof raw === 'object') return raw as LocalizedDoc
-  return { ja: emptyDoc() }
-}
-
-const BODY_TABS = [
-  { key: 'ja', label: '日本語' },
-  { key: 'en', label: 'English' },
-] as const
 
 const randomSuffix = () => Math.random().toString(36).slice(2, 6)
 
@@ -82,6 +63,7 @@ function newDraft(organizationId: string): Draft {
     publishedAt: heldOn,
     participants: '',
     tagIds: [],
+    relatedEventId: '',
     photos: [],
     status: 'draft',
   }
@@ -91,11 +73,11 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
   const [orgs, setOrgs] = useState<Org[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [reports, setReports] = useState<Draft[]>([])
+  const [events, setEvents] = useState<EventOption[]>([])
   const [draft, setDraft] = useState<Draft | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
-  const [bodyTab, setBodyTab] = useState<'ja' | 'en'>('ja')
   const [savedAt, setSavedAt] = useState('')
   const autosaveTimer = useRef<number | null>(null)
 
@@ -104,11 +86,26 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
   async function load() {
     setError('')
     try {
-      const [orgSnap, tagSnap, reportSnap] = await Promise.all([
+      const [orgSnap, tagSnap, reportSnap, eventSnap] = await Promise.all([
         getDocs(collection(db(), 'organizations')),
         getDocs(collection(db(), 'tags')),
         getDocs(collection(db(), 'reports')),
+        getDocs(collection(db(), 'events')),
       ])
+
+      setEvents(
+        eventSnap.docs
+          .map((row) => {
+            const data = row.data()
+            return {
+              id: row.id,
+              title: String((data.title as Record<string, string> | undefined)?.ja || '(無題)'),
+              date: String(data.startAt ?? '').slice(0, 10),
+              organizationId: String(data.organizationId ?? ''),
+            }
+          })
+          .sort((a, b) => b.date.localeCompare(a.date)),
+      )
 
       setOrgs(
         orgSnap.docs.map((row) => ({
@@ -139,6 +136,7 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
           publishedAt: String(data.publishedAt ?? ''),
           participants: data.participants === undefined ? '' : String(data.participants),
           tagIds: (data.tagIds as string[]) ?? [],
+          relatedEventId: String(data.relatedEventId ?? ''),
           photos: (data.photos as PhotoEntry[]) ?? [],
           status: (data.status as 'draft' | 'published') ?? 'draft',
         }
@@ -188,6 +186,7 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
         publishedAt: draft.publishedAt,
         ...(draft.participants.trim() ? { participants: Number(draft.participants) } : {}),
         tagIds: draft.tagIds,
+        ...(draft.relatedEventId ? { relatedEventId: draft.relatedEventId } : {}),
         photos: draft.photos,
         status: draft.status,
         updatedAt: serverTimestamp(),
@@ -267,39 +266,8 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
             hint="一覧やSNSシェアに出る短い紹介です。"
             onChange={(summary) => setDraft({ ...draft, summary })} />
 
-          {/* 本文：言語ごとにブロックエディタを切り替える */}
-          <fieldset className="rounded-card border border-faded-gray bg-white p-4">
-            <legend className="px-1 text-sm font-bold text-charcoal">本文</legend>
-
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div role="tablist" className="flex items-center gap-0.5 rounded-card bg-paper-white p-1">
-                {BODY_TABS.map((tab) => (
-                  <button key={tab.key} type="button" role="tab"
-                    aria-selected={bodyTab === tab.key}
-                    onClick={() => setBodyTab(tab.key)}
-                    className={`rounded-card px-4 py-1.5 text-sm font-bold transition-colors ${
-                      bodyTab === tab.key ? 'bg-white text-blue-text' : 'text-pencil-gray'
-                    }`}>
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-            </div>
-
-            {bodyTab === 'en' && (
-              <p className="mb-2 text-xs text-pencil-gray">
-                空のままにすると、英語版では日本語の本文が表示されます。
-              </p>
-            )}
-
-            <BlockEditor
-              localeKey={bodyTab}
-              doc={draft.body[bodyTab]}
-              organizationId={draft.organizationId}
-              onChange={(next) => setDraft({ ...draft, body: { ...draft.body, [bodyTab]: next } })}
-            />
-          </fieldset>
+          <BodyInput value={draft.body} organizationId={draft.organizationId}
+            onChange={(body) => setDraft({ ...draft, body })} />
 
           <PhotoInput organizationId={draft.organizationId} photos={draft.photos}
             onChange={(photos) => setDraft({ ...draft, photos })} />
@@ -350,6 +318,23 @@ export default function ReportEditor({ scope }: { scope: Scope }) {
               })}
             </div>
           </fieldset>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-pencil-gray">関連するイベント（任意）</label>
+            <select value={draft.relatedEventId}
+              onChange={(e) => setDraft({ ...draft, relatedEventId: e.target.value })}
+              className="w-full rounded-card border border-faded-gray px-3 py-2.5 text-sm">
+              <option value="">なし</option>
+              {events
+                .filter((event) => event.organizationId === draft.organizationId || event.id === draft.relatedEventId)
+                .map((event) => (
+                  <option key={event.id} value={event.id}>{event.date} {event.title}</option>
+                ))}
+            </select>
+            <p className="mt-1 text-xs text-pencil-gray">
+              選ぶと、活動報告とイベントのページが互いにリンクされます。
+            </p>
+          </div>
 
           <div>
             <label className="mb-1.5 block text-xs font-bold text-pencil-gray">

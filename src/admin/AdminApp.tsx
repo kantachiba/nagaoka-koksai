@@ -12,6 +12,7 @@ import { seedInitialData, type SeedResult } from './seed'
 import InvitePanel from './InvitePanel'
 import ReportEditor from './ReportEditor'
 import OrganizationEditor from './OrganizationEditor'
+import EventEditor from './EventEditor'
 import { adminHref } from './paths'
 
 /**
@@ -190,11 +191,11 @@ function AdminSections({ uid }: { uid: string }) {
   return (
     <>
       <PublishNote />
+      <EventEditor scope={{ kind: 'admin' }} />
       <ReportEditor scope={{ kind: 'admin' }} />
       <OrganizationEditor scope={{ kind: 'admin' }} />
       <InvitePanel uid={uid} />
       <SeedSection />
-      <ComingSoon />
     </>
   )
 }
@@ -203,12 +204,9 @@ function EditorSections({ organizationId }: { organizationId: string }) {
   return (
     <>
       <PublishNote />
+      <EventEditor scope={{ kind: 'editor', organizationId }} />
       <ReportEditor scope={{ kind: 'editor', organizationId }} />
       <OrganizationEditor scope={{ kind: 'editor', organizationId }} />
-      <section className="rounded-card border border-dashed border-faded-gray bg-white/60 p-6">
-        <h2 className="text-lg font-bold text-charcoal">イベントの編集</h2>
-        <p className="mt-2 text-sm text-pencil-gray">この先のフェーズで実装します。</p>
-      </section>
     </>
   )
 }
@@ -280,15 +278,6 @@ function SeedSection() {
         </p>
       )}
       {error && <p role="alert" className="mt-4 rounded-card bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
-    </section>
-  )
-}
-
-function ComingSoon() {
-  return (
-    <section className="rounded-card border border-dashed border-faded-gray bg-white/60 p-6">
-      <h2 className="text-lg font-bold text-charcoal">イベントの編集</h2>
-      <p className="mt-2 text-sm text-pencil-gray">この先のフェーズで実装します。</p>
     </section>
   )
 }
