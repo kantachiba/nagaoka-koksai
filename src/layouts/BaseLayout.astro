@@ -48,8 +48,6 @@ const metaDescription = stripRuby(
   description ?? resolveText(SITE_DESCRIPTION, locale).text,
 )
 
-// new URL(p, SITE_URL) は使わない。SITE_URL がサブパスを持つため、
-// 先頭 '/' の相対参照だとパス部分ごと消えてしまう（config/site.ts 参照）。
 const absolute = absoluteUrl
 
 /** 各言語版は独立したページなので、canonical は自分自身を指す */

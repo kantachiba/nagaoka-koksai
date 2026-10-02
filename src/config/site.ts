@@ -28,22 +28,12 @@ export const FIREBASE_PROJECT_ID = 'nagaoka-kokusai-portal'
 
 /**
  * 本番URL。OGP と sitemap の絶対URL生成に使う。
- *
- * ⚠️ tibanian.com のサブパスで公開しているため、末尾にパスが付く。
- *    Firebase Hosting 自体はこのパスを知らず、ルート（/events など）で
- *    配信している。ドメイン直下には既存の個人サイトがあるため、
- *    Cloudflare Worker が tibanian.com/international-portal/* を
- *    Firebase Hosting へプロキシし、HTML内の相対パスにこのプレフィックスを
- *    付け直している（cloudflare/international-portal-proxy.js）。
- *    パスを含むぶん、素の `new URL(p, SITE_URL)` は使わないこと
- *    （先頭が '/' の相対参照は WHATWG URL 仕様でパス部分を丸ごと
- *    上書きしてしまい、このパスが消える）。絶対URLは必ず absoluteUrl() で作る。
+ * 絶対URLは必ず absoluteUrl() で作る（呼び出し側でバラさない）。
  */
-export const SITE_URL = 'https://tibanian.com/international-portal'
+export const SITE_URL = 'https://nagaoka-international.nitnc.club'
 
 /**
  * ルート相対パスを、このサイトの絶対URLにする。
- * `new URL(p, SITE_URL)` は SITE_URL 側のパス部分を消してしまうため使わない。
  */
 export function absoluteUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`

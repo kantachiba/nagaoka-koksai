@@ -3,7 +3,7 @@
 長岡市の国際交流イベント・活動報告・団体情報を集約するポータルサイトの**フロントエンド先行開発**です。
 バックエンド／DBは未接続で、すべての表示は `src/data/` のローカルデータから描画しています。
 
-- 公開URL: https://nagaoka-kokusai-portal.web.app （検索エンジン非登録 / `noindex`）
+- 公開URL: https://nagaoka-international.nitnc.club
 - Firebase コンソール: https://console.firebase.google.com/project/nagaoka-kokusai-portal/overview
 
 ## 起動

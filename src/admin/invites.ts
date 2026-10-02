@@ -44,8 +44,7 @@ export function generateInviteCode(): string {
 
 /**
  * 招待URL。運営はこれをそのまま相手に送る。
- * base には window.location.origin ではなく SITE_URL を渡すこと
- * （サブパスで公開しているため、origin だけだとパスが欠ける）。
+ * base には SITE_URL を渡す（本番の正式なドメインで発行するため）。
  */
 export const inviteUrl = (code: string, base: string): string =>
   `${base}/admin/join?code=${encodeURIComponent(code)}`
