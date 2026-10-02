@@ -1,6 +1,7 @@
 ---
 import '../../styles/global.css'
 import JoinApp from '../../admin/JoinApp'
+import Favicons from '../../components/Favicons.astro'
 import { SITE_NAME } from '../../config/site'
 import { resolveText } from '../../i18n/text'
 import { stripRuby } from '../../lib/ruby'
@@ -16,6 +17,7 @@ const siteName = stripRuby(resolveText(SITE_NAME, 'ja').text)
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>編集者の登録｜{siteName}</title>
+    <Favicons />
   </head>
   <body class="bg-paper-white">
     <div class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
