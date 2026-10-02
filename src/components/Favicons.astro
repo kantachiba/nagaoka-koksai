@@ -1,10 +1,23 @@
 ---
+import { absoluteUrl } from '../config/site'
+
 /**
  * favicon。公開ページ（BaseLayout）と管理画面の両方で使う。
- * ルート相対パスなので、Cloudflare Worker が /international-portal を付け直す。
+ *
+ * このサイトは tibanian.com のサブパスで公開している。同じオリジンの
+ * 親サイトが SVG の favicon を持っているため、ルート相対の PNG だけだと
+ * ブラウザが親サイトのアイコンをタブに使い続ける。
+ * 絶対URLと SVG / ICO を先に出し、このサイト固有のアイコンとして選ばせる。
  */
+const iconSvg = absoluteUrl('/favicon.svg')
+const iconIco = absoluteUrl('/favicon.ico')
+const icon32 = absoluteUrl('/favicon-32.png')
+const icon512 = absoluteUrl('/favicon-512.png')
+const apple = absoluteUrl('/apple-touch-icon.png')
 ---
 
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-<link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="icon" href={iconSvg} type="image/svg+xml" />
+<link rel="icon" href={iconIco} sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href={icon32} />
+<link rel="icon" type="image/png" sizes="512x512" href={icon512} />
+<link rel="apple-touch-icon" href={apple} />
