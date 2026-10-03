@@ -77,7 +77,12 @@ const philosophy = resolveText(organization.philosophy, locale).text
       </div>
 
       <div class="min-w-0 overflow-hidden rounded-card border-2 border-faded-gray">
-        <PhotoImage photoId={organization.imageId} seed={organization.slug} class="aspect-4/3" />
+        <PhotoImage
+          photoId={organization.imageId}
+          seed={organization.slug}
+          alt={stripRuby(resolveText(organization.name, locale).text)}
+          class="aspect-4/3"
+        />
       </div>
     </div>
   </Container>

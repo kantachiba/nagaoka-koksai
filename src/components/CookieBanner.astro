@@ -1,0 +1,84 @@
+---
+import { localizePath, useTranslations, type Locale } from '../i18n'
+import { ANALYTICS_ID } from '../config/site'
+import Ruby from './Ruby.astro'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const t = useTranslations(locale)
+---
+
+<div
+  id="cookie-banner"
+  hidden
+  class="fixed inset-x-0 bottom-0 z-50 border-t-2 border-faded-gray bg-white px-4 py-4 sm:px-6"
+  role="dialog"
+  aria-labelledby="cookie-title"
+  data-analytics-id={ANALYTICS_ID}
+>
+  <div class="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="min-w-0">
+      <p id="cookie-title" class="text-sm font-bold text-charcoal">
+        <Ruby text={t('cookie.title')} />
+      </p>
+      <p class="mt-1 text-sm leading-relaxed text-pencil-gray">
+        <Ruby text={t('cookie.body')} />
+        <a href={localizePath('/privacy', locale)} class="ml-1 font-bold text-blue-text underline-offset-2 hover:underline">
+          <Ruby text={t('cookie.policy')} />
+        </a>
+      </p>
+    </div>
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <button type="button" data-cookie="reject" class="btn-outline btn-sm">
+        <Ruby text={t('cookie.reject')} />
+      </button>
+      <button type="button" data-cookie="accept" class="btn-primary btn-sm">
+        <Ruby text={t('cookie.accept')} />
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const KEY = 'cookie-consent'
+  const banner = document.getElementById('cookie-banner')
+  const analyticsId = banner?.dataset.analyticsId ?? ''
+
+  function loadAnalytics(id: string) {
+    if (!id || document.getElementById('ga-gtag')) return
+    const script = document.createElement('script')
+    script.id = 'ga-gtag'
+    script.async = true
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`
+    document.head.appendChild(script)
+    const w = window as unknown as Window & { dataLayer: unknown[] }
+    w.dataLayer = w.dataLayer ?? []
+    const gtag = (...args: unknown[]) => {
+      w.dataLayer.push(args)
+    }
+    gtag('js', new Date())
+    gtag('config', id, { anonymize_ip: true })
+  }
+
+  const sticky = document.getElementById('sticky-cta')
+
+  const saved = localStorage.getItem(KEY)
+  if (!saved) {
+    banner?.removeAttribute('hidden')
+    sticky?.setAttribute('hidden', '')
+  }
+  if (saved === 'accepted' && analyticsId) loadAnalytics(analyticsId)
+
+  banner?.querySelectorAll<HTMLButtonElement>('[data-cookie]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const choice = button.dataset.cookie === 'accept' ? 'accepted' : 'rejected'
+      localStorage.setItem(KEY, choice)
+      banner.setAttribute('hidden', '')
+      sticky?.removeAttribute('hidden')
+      if (choice === 'accepted' && analyticsId) loadAnalytics(analyticsId)
+    })
+  })
+</script>

@@ -75,8 +75,16 @@ const siteName = resolveText(SITE_NAME, locale).text
       </div>
     </div>
 
-    <div class="mt-10 border-t-2 border-night-ink/25 pt-6 text-sm">
+    <div class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t-2 border-night-ink/25 pt-6 text-sm">
       <p>© {new Date().getFullYear()} Nagaoka International Portal</p>
+      <nav aria-label={t('footer.legal')} class="flex flex-wrap gap-4">
+        <a href={localizePath('/privacy', locale)} class="font-bold underline-offset-2 hover:underline">
+          <Ruby text={t('nav.privacy')} />
+        </a>
+        <a href={localizePath('/terms', locale)} class="font-bold underline-offset-2 hover:underline">
+          <Ruby text={t('nav.terms')} />
+        </a>
+      </nav>
     </div>
   </Container>
 </footer>

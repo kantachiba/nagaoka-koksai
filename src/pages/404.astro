@@ -12,7 +12,7 @@ const locale = DEFAULT_LOCALE
 const t = useTranslations(locale)
 ---
 
-<BaseLayout locale={locale} path="/404" title={t('notfound.title')}>
+<BaseLayout locale={locale} path="/404" title={t('notfound.title')} description={t('notfound.body')}>
   <Container class="py-24 text-center sm:py-32">
     <p class="text-6xl font-bold text-storybook-green sm:text-8xl">404</p>
     <h1 class="mt-4 text-2xl sm:text-3xl">{t('notfound.title')}</h1>

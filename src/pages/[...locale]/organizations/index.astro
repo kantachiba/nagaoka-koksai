@@ -1,5 +1,6 @@
 ---
 import { localeStaticPaths, useTranslations, type Locale } from '../../../i18n'
+import { stripRuby } from '../../../lib/ruby'
 import { getContent, listableEvents } from '../../../lib/content'
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import PageHero from '../../../components/layout/PageHero.astro'
@@ -25,7 +26,7 @@ const countsOf = (organizationId: string) => ({
 })
 ---
 
-<BaseLayout locale={locale} path="/organizations" title={t('orgs.title')}>
+<BaseLayout locale={locale} path="/organizations" title={t('orgs.title')} description={stripRuby(t('orgs.lead'))}>
   <PageHero
     locale={locale}
     title={t('orgs.title')}

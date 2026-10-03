@@ -29,7 +29,7 @@ const filterTags = bundle.tags.filter((tag) => usedTagIds.has(tag.id))
 const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].sort().reverse()
 ---
 
-<BaseLayout locale={locale} path="/reports" title={t('reports.title')}>
+<BaseLayout locale={locale} path="/reports" title={t('reports.title')} description={stripRuby(t('reports.lead'))}>
   <PageHero
     locale={locale}
     title={t('reports.title')}
@@ -52,6 +52,7 @@ const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].s
             <p class="text-sm text-pencil-gray">
               <span class="text-base font-bold text-charcoal tabular-nums" data-result-count>{reports.length}</span>
               <Ruby text={t('common.count')} />
+              <span data-filter-status class="sr-only" aria-live="polite"></span>
             </p>
           </div>
 
@@ -141,6 +142,8 @@ const years = [...new Set(reports.map((report) => report.heldOn.slice(0, 4)))].s
     }
     if (countEl) countEl.textContent = String(shown)
     emptyEl?.toggleAttribute('hidden', shown > 0)
+    const status = document.querySelector<HTMLElement>('[data-filter-status]')
+    if (status) status.textContent = `${shown}`
   }
 
   controls.forEach((control) => control.addEventListener('change', apply))

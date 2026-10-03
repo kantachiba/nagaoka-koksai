@@ -3,7 +3,7 @@ import { LOCALES, localizePath, useTranslations, type Locale } from '../../../i1
 import { resolveText } from '../../../i18n/text'
 import { stripRuby } from '../../../lib/ruby'
 import { resolveDoc } from '../../../lib/blocks'
-import { FEATURES } from '../../../config/site'
+import { FEATURES, absoluteUrl } from '../../../config/site'
 import { findOrganization, getContent, listableEvents } from '../../../lib/content'
 import { dateOf, getEventStatus, timeOf } from '../../../lib/event-helpers'
 import { supportLanguageLabel } from '../../../lib/support-languages'
@@ -70,6 +70,7 @@ const canApply = event.visibility === 'public'
   path={`/events/${event.slug}`}
   title={title}
   description={stripRuby(summary)}
+  ogImage={event.imageId ? absoluteUrl(`/photos/${event.imageId}.jpg`) : undefined}
 >
   <Container>
     <nav aria-label={t('common.breadcrumb')} class="py-4">

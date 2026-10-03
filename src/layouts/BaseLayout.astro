@@ -14,6 +14,8 @@ import { NOINDEX, SITE_DESCRIPTION, SITE_NAME, absoluteUrl } from '../config/sit
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
 import Favicons from '../components/Favicons.astro'
+import CookieBanner from '../components/CookieBanner.astro'
+import StickyCta from '../components/StickyCta.astro'
 import { getImage } from 'astro:assets'
 import { SITE_PHOTOS } from '../assets/photos'
 
@@ -115,13 +117,15 @@ const ogImageUrl = ogImage ?? absolute(ogFallback.src)
     <meta property="og:description" content={metaDescription} />
     <meta property="og:url" content={absolute(localizePath(path, locale))} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:alt" content={fullTitle} />
     <meta property="og:locale" content={meta.htmlLang === 'en' ? 'en_US' : 'ja_JP'} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImageUrl} />
 
     <slot name="head" />
   </head>
 
-  <body class="flex min-h-screen flex-col">
+  <body class="flex min-h-screen flex-col pb-24 lg:pb-0">
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-card focus:bg-eager-green focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
@@ -136,5 +140,7 @@ const ogImageUrl = ogImage ?? absolute(ogFallback.src)
     </main>
 
     <Footer locale={locale} />
+    <StickyCta locale={locale} />
+    <CookieBanner locale={locale} />
   </body>
 </html>

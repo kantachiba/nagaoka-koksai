@@ -1,6 +1,7 @@
 ---
 import { localizePath, useTranslations, type Locale } from '../i18n'
 import { resolveText } from '../i18n/text'
+import { stripRuby } from '../lib/ruby'
 import { formatDate } from '../lib/date'
 import { withUnit } from '../lib/units'
 import type { Organization, ReportItem, Tag } from '../lib/types'
@@ -39,7 +40,12 @@ const cover = report.photos[0]
     class="flex h-full flex-col overflow-hidden rounded-card bg-white border-2 border-faded-gray transition-colors hover:border-eager-green"
   >
     <div class="relative aspect-16/9 overflow-hidden bg-eager-green">
-      <PhotoImage photoId={cover?.photoId} seed={report.slug} class="transition-transform" />
+      <PhotoImage
+        photoId={cover?.photoId}
+        seed={report.slug}
+        alt={stripRuby(resolveText(report.title, locale).text)}
+        class="transition-transform"
+      />
       {
         report.photos.length > 1 && (
           <span class="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-card bg-charcoal/70 px-2.5 py-1 text-xs font-semibold text-white">

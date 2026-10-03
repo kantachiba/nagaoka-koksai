@@ -1,0 +1,37 @@
+---
+import { localeStaticPaths, useTranslations, type Locale } from '../../i18n'
+import { stripRuby } from '../../lib/ruby'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PageHero from '../../components/layout/PageHero.astro'
+import Container from '../../components/ui/Container.astro'
+import Ruby from '../../components/Ruby.astro'
+
+export function getStaticPaths() {
+  return localeStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
+const t = useTranslations(locale)
+const paragraphs = ['privacy.p1', 'privacy.p2', 'privacy.p3', 'privacy.p4', 'privacy.p5', 'privacy.p6'] as const
+---
+
+<BaseLayout
+  locale={locale}
+  path="/privacy"
+  title={t('privacy.title')}
+  description={stripRuby(t('privacy.lead'))}
+>
+  <PageHero
+    locale={locale}
+    title={t('privacy.title')}
+    lead={t('privacy.lead')}
+    crumbs={[{ label: t('nav.home'), path: '/' }, { label: t('privacy.title') }]}
+  />
+  <Container class="pt-8 pb-16">
+    <div class="max-w-3xl space-y-5 text-charcoal leading-loose">
+      {paragraphs.map((key) => (
+        <p class="text-balance-ja"><Ruby text={t(key)} /></p>
+      ))}
+    </div>
+  </Container>
+</BaseLayout>

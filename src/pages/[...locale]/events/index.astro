@@ -37,7 +37,7 @@ const filterTags = bundle.tags.filter((tag) => usedTagIds.has(tag.id))
 const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLanguages))]
 ---
 
-<BaseLayout locale={locale} path="/events" title={t('events.title')}>
+<BaseLayout locale={locale} path="/events" title={t('events.title')} description={stripRuby(t('events.lead'))}>
   <PageHero
     locale={locale}
     title={t('events.title')}
@@ -74,6 +74,7 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
                 {upcomingEvents.length}
               </span>
               <Ruby text={t('common.count')} />
+              <span data-filter-status class="sr-only" aria-live="polite"></span>
             </p>
           </div>
 
@@ -240,6 +241,8 @@ const usedLangs = [...new Set(upcomingEvents.flatMap((event) => event.supportLan
 
     if (countEl) countEl.textContent = String(shown)
     emptyEl?.toggleAttribute('hidden', shown > 0)
+    const status = document.querySelector<HTMLElement>('[data-filter-status]')
+    if (status) status.textContent = `${shown}`
   }
 
   controls.forEach((control) => control.addEventListener('change', apply))

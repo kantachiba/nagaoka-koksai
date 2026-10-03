@@ -43,6 +43,15 @@ export function absoluteUrl(path: string): string {
 /** ロゴ画像を用意したらここにパスを入れる。空ならシンボルマークを描画する */
 export const SITE_LOGO_PATH = ''
 
+// ------------------------------------------------------------------ アクセス解析
+
+/**
+ * Google アナリティクス 4 の測定ID（G- から始まる）。
+ * 空のあいだはタグを出さない。環境変数 PUBLIC_GA_MEASUREMENT_ID があればそちらを優先する。
+ */
+export const ANALYTICS_ID =
+  (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_GA_MEASUREMENT_ID) || ''
+
 // ------------------------------------------------------------------ A-5 ハッシュタグ
 
 /**
